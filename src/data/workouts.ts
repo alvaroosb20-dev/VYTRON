@@ -1,14 +1,9 @@
 import type { Tier } from '@/config/plans';
+import { getExercise } from './exercises';
 
-export type Exercise = {
-  id: string;
-  name: string;
-  sets: number;
-  reps: string; // "8-10", "30 s"...
-  restSec: number;
-  cue: string; // clave técnica breve
-  tracksWeight?: boolean;
-};
+export type Setting = 'Gimnasio' | 'Mancuernas' | 'Sin material';
+
+export type WorkoutItem = { exerciseId: string; sets: number; reps: string; restSec: number };
 
 export type Workout = {
   id: string;
@@ -17,124 +12,63 @@ export type Workout = {
   level: 'Inicial' | 'Intermedio' | 'Avanzado';
   minutes: number;
   tier: Tier;
-  exercises: Exercise[];
+  setting: Setting;
+  items: WorkoutItem[];
+  custom?: boolean;
 };
 
-// Rutinas reales y sencillas. Free incluye una base completa de cuerpo entero.
+const i = (exerciseId: string, sets: number, reps: string, restSec: number): WorkoutItem => ({ exerciseId, sets, reps, restSec });
+
+// Rutinas basadas en estructuras de entrenamiento habituales (cuerpo completo, torso/pierna, push/pull/legs, 5×5).
 export const WORKOUTS: Workout[] = [
-  {
-    id: 'full-body-a',
-    name: 'CUERPO COMPLETO A',
-    focus: 'Fuerza general',
-    level: 'Inicial',
-    minutes: 40,
-    tier: 'free',
-    exercises: [
-      { id: 'squat', name: 'Sentadilla', sets: 3, reps: '8-10', restSec: 90, cue: 'Pecho alto, rodillas en línea con los pies.', tracksWeight: true },
-      { id: 'pushup', name: 'Flexiones', sets: 3, reps: '8-12', restSec: 75, cue: 'Cuerpo en bloque, codos a 45°.' },
-      { id: 'row-db', name: 'Remo con mancuerna', sets: 3, reps: '10 por lado', restSec: 75, cue: 'Tira con el codo hacia la cadera.', tracksWeight: true },
-      { id: 'glute-bridge', name: 'Puente de glúteo', sets: 3, reps: '12', restSec: 60, cue: 'Aprieta arriba un segundo.' },
-      { id: 'plank', name: 'Plancha', sets: 3, reps: '30 s', restSec: 45, cue: 'Abdomen y glúteos activos.' },
-    ],
-  },
-  {
-    id: 'full-body-b',
-    name: 'CUERPO COMPLETO B',
-    focus: 'Fuerza general',
-    level: 'Inicial',
-    minutes: 40,
-    tier: 'free',
-    exercises: [
-      { id: 'lunge', name: 'Zancada alterna', sets: 3, reps: '10 por pierna', restSec: 75, cue: 'Paso largo, tronco vertical.' },
-      { id: 'press-db', name: 'Press de hombro con mancuernas', sets: 3, reps: '8-10', restSec: 90, cue: 'No arquees la zona lumbar.', tracksWeight: true },
-      { id: 'rdl-db', name: 'Peso muerto rumano', sets: 3, reps: '10', restSec: 90, cue: 'Cadera atrás, espalda neutra.', tracksWeight: true },
-      { id: 'dead-bug', name: 'Dead bug', sets: 3, reps: '8 por lado', restSec: 45, cue: 'Lumbar pegada al suelo.' },
-    ],
-  },
-  {
-    id: 'mobility',
-    name: 'MOVILIDAD ACTIVA',
-    focus: 'Recuperación',
-    level: 'Inicial',
-    minutes: 20,
-    tier: 'free',
-    exercises: [
-      { id: 'cat-cow', name: 'Gato-camello', sets: 2, reps: '10', restSec: 20, cue: 'Movimiento lento, vértebra a vértebra.' },
-      { id: 'hip-90', name: 'Rotaciones de cadera 90/90', sets: 2, reps: '8 por lado', restSec: 20, cue: 'Tronco erguido.' },
-      { id: 'thoracic', name: 'Rotación torácica', sets: 2, reps: '8 por lado', restSec: 20, cue: 'Sigue la mano con la mirada.' },
-    ],
-  },
-  {
-    id: 'upper-power',
-    name: 'TORSO POTENCIA',
-    focus: 'Empuje y tracción',
-    level: 'Intermedio',
-    minutes: 50,
-    tier: 'pro',
-    exercises: [
-      { id: 'bench', name: 'Press banca', sets: 4, reps: '5-6', restSec: 150, cue: 'Escápulas retraídas, pies firmes.', tracksWeight: true },
-      { id: 'pullup', name: 'Dominadas', sets: 4, reps: '5-8', restSec: 120, cue: 'Pecho hacia la barra.' },
-      { id: 'incline-db', name: 'Press inclinado mancuernas', sets: 3, reps: '8-10', restSec: 90, cue: 'Baja controlado.', tracksWeight: true },
-      { id: 'cable-row', name: 'Remo en polea', sets: 3, reps: '10-12', restSec: 90, cue: 'Hombros lejos de las orejas.', tracksWeight: true },
-    ],
-  },
-  {
-    id: 'lower-power',
-    name: 'PIERNA POTENCIA',
-    focus: 'Tren inferior',
-    level: 'Intermedio',
-    minutes: 55,
-    tier: 'pro',
-    exercises: [
-      { id: 'back-squat', name: 'Sentadilla con barra', sets: 4, reps: '5', restSec: 180, cue: 'Respira y bloquea antes de bajar.', tracksWeight: true },
-      { id: 'deadlift', name: 'Peso muerto', sets: 3, reps: '5', restSec: 180, cue: 'Barra pegada a las piernas.', tracksWeight: true },
-      { id: 'bulgarian', name: 'Sentadilla búlgara', sets: 3, reps: '8 por pierna', restSec: 90, cue: 'Rodilla delantera estable.', tracksWeight: true },
-      { id: 'calf', name: 'Elevación de gemelos', sets: 3, reps: '12-15', restSec: 60, cue: 'Pausa abajo.' },
-    ],
-  },
-  {
-    id: 'conditioning',
-    name: 'ACONDICIONAMIENTO',
-    focus: 'Resistencia',
-    level: 'Avanzado',
-    minutes: 30,
-    tier: 'premium',
-    exercises: [
-      { id: 'kb-swing', name: 'Swing con kettlebell', sets: 5, reps: '15', restSec: 45, cue: 'Bisagra de cadera explosiva.', tracksWeight: true },
-      { id: 'burpee', name: 'Burpees', sets: 5, reps: '10', restSec: 45, cue: 'Ritmo constante.' },
-      { id: 'farmer', name: 'Paseo del granjero', sets: 4, reps: '40 m', restSec: 60, cue: 'Hombros abajo, pasos cortos.', tracksWeight: true },
-    ],
-  },
+  // ---------- FREE ----------
+  { id: 'full-body-a', name: 'CUERPO COMPLETO A', focus: 'Fuerza general', level: 'Inicial', minutes: 40, tier: 'free', setting: 'Mancuernas',
+    items: [i('squat', 3, '8-10', 90), i('pushup', 3, '8-12', 75), i('row-db', 3, '10-12', 75), i('glute-bridge', 3, '12-15', 60), i('plank', 3, '30 s', 45)] },
+  { id: 'full-body-b', name: 'CUERPO COMPLETO B', focus: 'Fuerza general', level: 'Inicial', minutes: 40, tier: 'free', setting: 'Mancuernas',
+    items: [i('lunge', 3, '10-12', 75), i('press-db', 3, '8-10', 90), i('rdl-db', 3, '10-12', 90), i('curl-db', 2, '10-12', 60), i('dead-bug', 3, '8-10', 45)] },
+  { id: 'home-bodyweight', name: 'EN CASA SIN MATERIAL', focus: 'Cuerpo completo', level: 'Inicial', minutes: 30, tier: 'free', setting: 'Sin material',
+    items: [i('air-squat', 4, '15-20', 60), i('incline-pushup', 3, '10-15', 60), i('superman', 3, '12', 45), i('lunge', 3, '10-12', 60), i('mountain-climber', 3, '30 s', 45), i('plank', 3, '40 s', 45)] },
+  { id: 'core-15', name: 'CORE EXPRÉS', focus: 'Abdomen y estabilidad', level: 'Inicial', minutes: 15, tier: 'free', setting: 'Sin material',
+    items: [i('dead-bug', 3, '8-10', 30), i('plank', 3, '40 s', 30), i('mountain-climber', 3, '30 s', 30), i('glute-bridge', 2, '15', 30)] },
+  { id: 'mobility', name: 'MOVILIDAD ACTIVA', focus: 'Recuperación', level: 'Inicial', minutes: 20, tier: 'free', setting: 'Sin material',
+    items: [i('cat-cow', 2, '10', 20), i('hip-90', 2, '8', 20), i('thoracic', 2, '8', 20), i('glute-bridge', 2, '12', 20)] },
+
+  // ---------- PRO ----------
+  { id: 'five-a', name: 'FUERZA 5×5 · A', focus: 'Fuerza máxima', level: 'Intermedio', minutes: 55, tier: 'pro', setting: 'Gimnasio',
+    items: [i('back-squat', 5, '5', 180), i('bench', 5, '5', 180), i('barbell-row', 5, '5', 150)] },
+  { id: 'five-b', name: 'FUERZA 5×5 · B', focus: 'Fuerza máxima', level: 'Intermedio', minutes: 50, tier: 'pro', setting: 'Gimnasio',
+    items: [i('back-squat', 5, '5', 180), i('ohp', 5, '5', 150), i('deadlift', 1, '5', 180)] },
+  { id: 'push', name: 'EMPUJE', focus: 'Pecho, hombro y tríceps', level: 'Intermedio', minutes: 55, tier: 'pro', setting: 'Gimnasio',
+    items: [i('bench', 4, '6-8', 150), i('ohp', 3, '6-8', 120), i('incline-db', 3, '8-12', 90), i('lateral-raise', 3, '12-15', 60), i('triceps-pushdown', 3, '10-12', 60)] },
+  { id: 'pull', name: 'TRACCIÓN', focus: 'Espalda y bíceps', level: 'Intermedio', minutes: 55, tier: 'pro', setting: 'Gimnasio',
+    items: [i('deadlift', 3, '5', 180), i('pullup', 4, '6-10', 120), i('cable-row', 3, '10-12', 90), i('face-pull', 3, '12-15', 60), i('hammer-curl', 3, '10-12', 60)] },
+  { id: 'legs', name: 'PIERNA', focus: 'Tren inferior completo', level: 'Intermedio', minutes: 60, tier: 'pro', setting: 'Gimnasio',
+    items: [i('back-squat', 4, '6-8', 180), i('rdl', 3, '8-10', 150), i('leg-press', 3, '10-12', 120), i('leg-curl', 3, '10-12', 75), i('calf', 4, '12-15', 60)] },
+  { id: 'upper', name: 'TORSO', focus: 'Empuje y tracción', level: 'Intermedio', minutes: 55, tier: 'pro', setting: 'Gimnasio',
+    items: [i('bench', 4, '6-8', 150), i('barbell-row', 4, '6-8', 120), i('ohp', 3, '8-10', 120), i('lat-pulldown', 3, '10-12', 90), i('dips', 2, '8-12', 90)] },
+  { id: 'lower', name: 'PIERNA Y GLÚTEO', focus: 'Tren inferior', level: 'Intermedio', minutes: 55, tier: 'pro', setting: 'Gimnasio',
+    items: [i('front-squat', 4, '6-8', 150), i('hip-thrust', 4, '8-10', 120), i('bulgarian', 3, '8-10', 90), i('leg-extension', 3, '12-15', 60), i('hanging-knee', 3, '10-12', 60)] },
+  { id: 'arms', name: 'BRAZOS Y HOMBROS', focus: 'Hipertrofia', level: 'Intermedio', minutes: 40, tier: 'pro', setting: 'Gimnasio',
+    items: [i('dips', 3, '8-12', 90), i('curl-db', 3, '10-12', 60), i('triceps-pushdown', 3, '10-12', 60), i('hammer-curl', 3, '10-12', 60), i('lateral-raise', 4, '12-15', 45), i('face-pull', 3, '15', 45)] },
+  { id: 'db-strength', name: 'FUERZA CON MANCUERNAS', focus: 'Cuerpo completo en casa', level: 'Intermedio', minutes: 45, tier: 'pro', setting: 'Mancuernas',
+    items: [i('bulgarian', 4, '8-10', 90), i('incline-db', 4, '8-10', 90), i('row-db', 4, '10-12', 75), i('rdl-db', 3, '10-12', 90), i('pallof', 3, '10', 45)] },
+
+  // ---------- PREMIUM ----------
+  { id: 'conditioning', name: 'ACONDICIONAMIENTO', focus: 'Resistencia y potencia', level: 'Avanzado', minutes: 30, tier: 'premium', setting: 'Mancuernas',
+    items: [i('kb-swing', 5, '15', 45), i('thruster', 4, '10', 60), i('burpee', 4, '10', 45), i('farmer', 4, '40 m', 60)] },
+  { id: 'athletic', name: 'ATLÉTICO', focus: 'Fuerza y control', level: 'Avanzado', minutes: 45, tier: 'premium', setting: 'Gimnasio',
+    items: [i('front-squat', 4, '5', 150), i('renegade-row', 3, '8-10', 75), i('goblet-cossack', 3, '6-8', 75), i('nordic', 3, '4-6', 90), i('pallof', 3, '10', 45)] },
 ];
 
-// Plan semanal por defecto (0 = domingo). Cada día apunta a una rutina o descanso.
-export const DEFAULT_WEEK: (string | null)[] = [null, 'full-body-a', 'mobility', 'full-body-b', null, 'full-body-a', 'mobility'];
+export const getWorkout = (id: string, custom: Workout[] = []) => [...WORKOUTS, ...custom].find((w) => w.id === id);
 
-export const getWorkout = (id: string) => WORKOUTS.find((w) => w.id === id);
+export const totalSets = (w: Workout) => w.items.reduce((a, it) => a + it.sets, 0);
 
-export type Recipe = { id: string; name: string; minutes: number; ingredients: string[]; steps: string[] };
+/** Duración aproximada calculada con series, ~45 s por serie y los descansos indicados. */
+export const estimateMinutes = (items: WorkoutItem[]) =>
+  Math.max(10, Math.round(items.reduce((a, it) => a + it.sets * (45 + it.restSec), 0) / 60));
 
-// Contenido Premium: recetas sencillas orientadas a entrenar (sin cifras inventadas).
-export const RECIPES: Recipe[] = [
-  {
-    id: 'oats',
-    name: 'Avena proteica con plátano',
-    minutes: 8,
-    ingredients: ['60 g de copos de avena', '250 ml de leche o bebida vegetal', '1 plátano', '150 g de yogur natural', 'Canela al gusto'],
-    steps: ['Cuece la avena con la leche 4-5 minutos.', 'Añade el plátano en rodajas.', 'Sirve con el yogur por encima y canela.'],
-  },
-  {
-    id: 'chicken-rice',
-    name: 'Pollo con arroz y verduras',
-    minutes: 25,
-    ingredients: ['150 g de pechuga de pollo', '70 g de arroz', '1 calabacín', '1 pimiento', 'Aceite de oliva, sal y pimentón'],
-    steps: ['Cuece el arroz según el paquete.', 'Saltea el pollo troceado con pimentón.', 'Añade las verduras y cocina 6-8 minutos.', 'Sirve con el arroz.'],
-  },
-  {
-    id: 'tuna-salad',
-    name: 'Ensalada de garbanzos y atún',
-    minutes: 10,
-    ingredients: ['200 g de garbanzos cocidos', '1 lata de atún al natural', 'Tomate y cebolla morada', 'Aceite de oliva y limón'],
-    steps: ['Escurre y enjuaga los garbanzos.', 'Mezcla con el atún, el tomate y la cebolla.', 'Aliña con aceite y limón.'],
-  },
-];
+export const exerciseName = (id: string) => getExercise(id)?.name ?? id;
+
+// Plan semanal por defecto (0 = domingo).
+export const DEFAULT_WEEK: (string | null)[] = [null, 'full-body-a', 'mobility', 'full-body-b', null, 'full-body-a', 'core-15'];

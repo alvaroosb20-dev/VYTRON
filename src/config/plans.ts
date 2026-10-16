@@ -7,10 +7,10 @@ export type Tier = 'free' | 'pro' | 'premium';
 export type Plan = {
   tier: Tier;
   name: string;
-  fallbackPrice: string; // solo referencia, editable
+  fallbackPrice: string;
   period: string;
-  // Identificador del paquete en la "offering" actual de RevenueCat.
-  packageId?: string;
+  packageId?: string; // paquete en la "offering" actual de RevenueCat
+  pitch: string;
   highlights: string[];
 };
 
@@ -20,13 +20,8 @@ export const PLANS: Plan[] = [
     name: 'FREE',
     fallbackPrice: '0 €',
     period: '/mes',
-    highlights: [
-      'Entrenamientos básicos',
-      'Seguimiento esencial',
-      'Selección limitada de ejercicios',
-      'Anuncios discretos',
-      'Puedes mejorar de plan cuando quieras',
-    ],
+    pitch: 'Para empezar a entrenar con buena técnica.',
+    highlights: ['Rutinas básicas y programa de inicio', 'Seguimiento esencial', 'Selección de ejercicios con técnica', 'Anuncios discretos', 'Mejora de plan cuando quieras'],
   },
   {
     tier: 'pro',
@@ -34,12 +29,17 @@ export const PLANS: Plan[] = [
     fallbackPrice: '4,99 €',
     period: '/mes',
     packageId: 'pro_monthly',
+    pitch: 'Para entrenar en serio y medir cada avance.',
     highlights: [
       'Sin anuncios',
-      'Más rutinas y ejercicios',
-      'Estadísticas avanzadas',
-      'Seguimiento de marcas personales',
+      'Programas de 6 a 8 semanas',
+      'Biblioteca de 41 ejercicios con técnica',
+      'Crea tus propias rutinas',
+      'Marcas personales y 1RM estimado',
+      'Estadísticas por grupo muscular',
       'Planificación semanal',
+      'Calculadora de discos y registro de peso',
+      'Conexión con Apple Salud',
     ],
   },
   {
@@ -48,29 +48,42 @@ export const PLANS: Plan[] = [
     fallbackPrice: '9,99 €',
     period: '/mes',
     packageId: 'premium_monthly',
+    pitch: 'Entrenamiento y nutrición en un solo lugar.',
     highlights: [
       'Todo lo de Pro',
-      'Planificación personalizada ampliada',
-      'Nutrición y recetas',
-      'Informes de progreso',
-      'Herramientas adicionales de planificación',
+      'Escáner de comidas: calorías estimadas con una foto',
+      'Diario de nutrición con objetivo diario',
+      'Recetas para entrenar',
+      'Plan personalizado según objetivo, días y material',
+      'Progresión automática de cargas',
+      'Programa de recomposición de 12 semanas',
+      'Informes de progreso mensuales',
+      'Envío de nutrición a Apple Salud',
     ],
   },
 ];
 
-// Identificadores de "entitlements" configurados en RevenueCat.
 export const ENTITLEMENTS = { pro: 'pro', premium: 'premium' } as const;
 
-// Qué nivel mínimo necesita cada función. Única fuente de verdad para el bloqueo.
+// Nivel mínimo de cada función. Única fuente de verdad para el bloqueo en toda la app.
 export const FEATURE_TIER = {
   adFree: 'pro',
   allRoutines: 'pro',
+  fullLibrary: 'pro',
+  programs: 'pro',
+  customRoutines: 'pro',
   advancedStats: 'pro',
   personalRecords: 'pro',
   weeklyPlanning: 'pro',
-  customPlanning: 'premium',
+  plateCalculator: 'pro',
+  bodyWeight: 'pro',
+  healthSync: 'pro',
+  foodScan: 'premium',
   nutrition: 'premium',
+  customPlanning: 'premium',
+  autoProgression: 'premium',
   progressReports: 'premium',
+  healthNutrition: 'premium',
 } as const satisfies Record<string, Tier>;
 
 export type Feature = keyof typeof FEATURE_TIER;
@@ -78,14 +91,20 @@ export type Feature = keyof typeof FEATURE_TIER;
 const RANK: Record<Tier, number> = { free: 0, pro: 1, premium: 2 };
 export const tierAllows = (current: Tier, required: Tier) => RANK[current] >= RANK[required];
 
-// Tabla de comparación del paywall.
 export const COMPARISON: { label: string; free: boolean | string; pro: boolean | string; premium: boolean | string }[] = [
-  { label: 'Rutinas', free: 'Básicas', pro: 'Todas', premium: 'Todas' },
+  { label: 'Rutinas', free: '5', pro: '14', premium: '16' },
+  { label: 'Ejercicios con técnica', free: '18', pro: '41', premium: '48' },
+  { label: 'Programas por semanas', free: '1', pro: '4', premium: '5' },
   { label: 'Sin anuncios', free: false, pro: true, premium: true },
-  { label: 'Estadísticas avanzadas', free: false, pro: true, premium: true },
-  { label: 'Marcas personales', free: false, pro: true, premium: true },
+  { label: 'Crear rutinas propias', free: false, pro: true, premium: true },
+  { label: 'Marcas y 1RM estimado', free: false, pro: true, premium: true },
+  { label: 'Estadísticas por músculo', free: false, pro: true, premium: true },
   { label: 'Planificación semanal', free: false, pro: true, premium: true },
-  { label: 'Plan personalizado ampliado', free: false, pro: false, premium: true },
-  { label: 'Nutrición y recetas', free: false, pro: false, premium: true },
-  { label: 'Informes de progreso', free: false, pro: false, premium: true },
+  { label: 'Calculadora de discos', free: false, pro: true, premium: true },
+  { label: 'Apple Salud', free: false, pro: true, premium: true },
+  { label: 'Escáner de comidas', free: false, pro: false, premium: true },
+  { label: 'Diario de nutrición', free: false, pro: false, premium: true },
+  { label: 'Plan personalizado', free: false, pro: false, premium: true },
+  { label: 'Progresión automática', free: false, pro: false, premium: true },
+  { label: 'Informes mensuales', free: false, pro: false, premium: true },
 ];

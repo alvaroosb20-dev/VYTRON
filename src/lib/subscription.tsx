@@ -26,6 +26,8 @@ type Ctx = {
   restore: () => Promise<{ ok: boolean; tier: Tier; error?: string }>;
   manage: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** Identificador de RevenueCat, que el servidor usa para verificar la suscripción. */
+  getAppUserId: () => Promise<string | undefined>;
 };
 
 const SubscriptionContext = createContext<Ctx | null>(null);
@@ -135,6 +137,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     restore,
     manage,
     refresh,
+    getAppUserId: async () => {
+      const Purchases = getPurchases();
+      if (!Purchases || !configured.current) return undefined;
+      try {
+        return await Purchases.getAppUserID();
+      } catch {
+        return undefined;
+      }
+    },
   }), [status, tier, packages, purchase, restore, manage, refresh]);
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;

@@ -141,6 +141,7 @@ function PlanCard({ tier, selected, current, onPress }: { tier: Tier; selected: 
           <T.Small>{plan.period.replace('/', 'al ')}</T.Small>
         </View>
       </View>
+      <T.Small style={{ marginTop: space.sm }}>{plan.pitch}</T.Small>
       <View style={{ marginTop: space.md, gap: 6 }}>
         {plan.highlights.map((h) => (
           <View key={h} style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>

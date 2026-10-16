@@ -6,8 +6,10 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleProp,
   StyleSheet,
   Text,
+  TextInput,
   TextStyle,
   View,
   ViewStyle,
@@ -39,7 +41,7 @@ export function Screen({ children, scroll = true, padTop = true }: { children: R
 }
 
 /** Aparición sutil (opacidad + desplazamiento corto). */
-export function FadeIn({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: ViewStyle }) {
+export function FadeIn({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: StyleProp<ViewStyle> }) {
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(v, { toValue: 1, duration: 380, delay, useNativeDriver: Platform.OS !== 'web' }).start();
@@ -51,7 +53,7 @@ export function FadeIn({ children, delay = 0, style }: { children: React.ReactNo
   );
 }
 
-export function Card({ children, style, onPress }: { children: React.ReactNode; style?: ViewStyle | ViewStyle[]; onPress?: () => void }) {
+export function Card({ children, style, onPress }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void }) {
   if (!onPress) return <View style={[styles.card, style]}>{children}</View>;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] }]}>
@@ -67,8 +69,8 @@ type ButtonProps = {
   icon?: IconName;
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 };
 
 /** Botón grande. Primary = verde neón, reservado para la acción principal. */
@@ -153,4 +155,50 @@ const styles = StyleSheet.create({
   },
   pillText: { fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 1, color: colors.muted },
   section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.xl, marginBottom: space.md },
+});
+
+/** Campo de texto con etiqueta. */
+export function Field({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
+  return (
+    <View style={{ gap: 6, flex: 1 }}>
+      <T.Label style={{ fontSize: 11 }}>{label}</T.Label>
+      <TextInput placeholderTextColor={colors.muted} {...props} style={[fieldStyles.input, props.style]} />
+    </View>
+  );
+}
+
+/** Selector de opciones en forma de chips. */
+export function Chips<V extends string | number>({ options, value, onChange }: { options: { value: V; label: string }[]; value?: V; onChange: (v: V) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable key={String(o.value)} onPress={() => onChange(o.value)} style={[fieldStyles.chip, on && fieldStyles.chipOn]} accessibilityState={{ selected: on }}>
+            <Text style={[fieldStyles.chipText, on && { color: colors.neonInk }]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Cabecera de pantalla secundaria con botón de cerrar/volver. */
+export function TopBar({ title, onClose }: { title?: string; onClose: () => void }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.lg }}>
+      <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Cerrar">
+        <Icon name="close" color={colors.muted} />
+      </Pressable>
+      {title ? <T.Label>{title}</T.Label> : <View />}
+      <View style={{ width: 22 }} />
+    </View>
+  );
+}
+
+const fieldStyles = StyleSheet.create({
+  input: { minHeight: 50, borderRadius: radius.sm, backgroundColor: colors.graphite, borderWidth: 1, borderColor: colors.line, color: colors.white, paddingHorizontal: space.md, fontFamily: fonts.medium, fontSize: 16 },
+  chip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.pill, backgroundColor: colors.graphite, borderWidth: 1, borderColor: colors.line },
+  chipOn: { backgroundColor: colors.neon, borderColor: colors.neon },
+  chipText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.white },
 });

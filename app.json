@@ -12,7 +12,15 @@
     "ios": {
       "bundleIdentifier": "com.vytron.app",
       "supportsTablet": false,
-      "config": { "usesNonExemptEncryption": false }
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "VYTRON lee tus pasos, tu energía activa y tu peso para mostrar tu actividad diaria y calcular tus objetivos.",
+        "NSHealthUpdateUsageDescription": "VYTRON guarda en Salud tus entrenamientos, tu peso y, si lo activas, las calorías de tus comidas.",
+        "NSCameraUsageDescription": "VYTRON usa la cámara para fotografiar tus comidas y estimar sus calorías.",
+        "NSPhotoLibraryUsageDescription": "VYTRON accede a tus fotos para que elijas la imagen de una comida."
+      }
     },
     "android": {
       "package": "com.vytron.app",
@@ -38,8 +46,25 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A0A0B"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "VYTRON accede a tus fotos para que elijas la imagen de una comida.",
+          "cameraPermission": "VYTRON usa la cámara para fotografiar tus comidas y estimar sus calorías."
+        }
+      ],
+      [
+        "react-native-health",
+        {
+          "isClinicalDataEnabled": false,
+          "healthSharePermission": "VYTRON lee tus pasos, tu energía activa y tu peso para mostrar tu actividad diaria y calcular tus objetivos.",
+          "healthUpdatePermission": "VYTRON guarda en Salud tus entrenamientos, tu peso y, si lo activas, las calorías de tus comidas."
+        }
       ]
     ],
-    "experiments": { "typedRoutes": false }
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }

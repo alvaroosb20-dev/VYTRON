@@ -1,20 +1,30 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Feature, FEATURE_TIER } from '@/config/plans';
+import { Feature, FEATURE_TIER, Tier, tierAllows } from '@/config/plans';
 import { useSubscription } from '@/lib/subscription';
 import { colors, fonts, space } from '@/theme/tokens';
 import { Icon } from './Icon';
 import { Card, T } from './ui';
 
+type GateProps = {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+} & ({ feature: Feature; tier?: never } | { tier: Tier; feature?: never });
+
 /**
- * Muestra el contenido solo si el usuario tiene un derecho VERIFICADO a la función.
+ * Muestra el contenido solo si el usuario tiene un derecho VERIFICADO.
  * Si no, enseña una tarjeta clara que lleva a la pantalla de planes.
  */
-export function Gate({ feature, title, description, children }: { feature: Feature; title: string; description: string; children: React.ReactNode }) {
-  const { hasAccess } = useSubscription();
-  if (hasAccess(feature)) return <>{children}</>;
-  const tierName = FEATURE_TIER[feature] === 'premium' ? 'PREMIUM' : 'PRO';
+export function Gate({ feature, tier, title, description, children }: GateProps) {
+  const sub = useSubscription();
+  const required: Tier = feature ? FEATURE_TIER[feature] : tier!;
+  if (tierAllows(sub.tier, required)) return <>{children}</>;
+  return <LockedCard required={required} title={title} description={description} />;
+}
+
+export function LockedCard({ required, title, description }: { required: Tier; title: string; description: string }) {
   return (
     <Card onPress={() => router.push('/paywall')} style={styles.card}>
       <View style={styles.row}>
@@ -26,7 +36,7 @@ export function Gate({ feature, title, description, children }: { feature: Featu
           <T.Small>{description}</T.Small>
         </View>
       </View>
-      <Text style={styles.cta}>Disponible en {tierName}  →</Text>
+      <Text style={styles.cta}>Disponible en {required === 'premium' ? 'PREMIUM' : 'PRO'}  →</Text>
     </Card>
   );
 }
