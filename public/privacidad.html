@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de privacidad · VYTRON</title>
+<meta name="description" content="Qué datos trata VYTRON, para qué y cuáles son tus derechos.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0A0A0B; --card:#171719; --line:#2E2E33; --text:#F5F5F5; --muted:#A0A0A8; --neon:#B7FF36; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.7 Inter, system-ui, sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:32px 20px 80px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:28px; border-bottom:1px solid var(--line); }
+  header img { height:26px; display:block; }
+  header span { font:600 12px Inter, sans-serif; letter-spacing:1.4px; color:var(--muted); }
+  h1 { font:800 48px/1 'Barlow Condensed', sans-serif; letter-spacing:.5px; margin:40px 0 8px; text-transform:uppercase; }
+  h2 { font:700 24px/1.2 'Barlow Condensed', sans-serif; letter-spacing:.5px; text-transform:uppercase; margin:44px 0 10px; }
+  h2 b { color:var(--neon); font-weight:700; margin-right:8px; }
+  p, li { color:#D9D9DE; }
+  .muted { color:var(--muted); font-size:14px; }
+  a { color:var(--neon); }
+  ul { padding-left:20px; }
+  li { margin:6px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; margin:16px 0; }
+  .card p { margin:0; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:12px 0; }
+  th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:12px; letter-spacing:1px; text-transform:uppercase; border-top:0; }
+  .scroll { overflow-x:auto; }
+  footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font:700 13px 'Barlow Condensed', sans-serif; letter-spacing:3px; color:var(--muted); text-align:center; }
+  @media (max-width:520px) { h1 { font-size:38px; } table { font-size:13px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/" aria-label="VYTRON"><img src="/logo/vytron-logo.svg" alt="VYTRON"></a>
+    <span>LEGAL</span>
+  </header>
+
+  <h1>Política de privacidad</h1>
+  <p class="muted">Última actualización: 18 de octubre de 2026</p>
+
+  <div class="card">
+    <p><strong>En resumen:</strong> VYTRON no tiene cuentas de usuario. Tus entrenamientos, tu peso, tus comidas y tus datos corporales se guardan en tu teléfono. Lo que tomas de Apple Salud no sale de tu dispositivo. Las fotos de comida que escaneas se envían solo para calcular las calorías y no las guardamos. No vendemos tus datos ni los usamos para publicidad.</p>
+  </div>
+
+  <h2><b>01</b>Quién es el responsable</h2>
+  <p>El responsable del tratamiento de tus datos es <strong>Álvaro Santana Bencomo</strong>, con domicilio en Santa Cruz de Tenerife (España), titular de la aplicación VYTRON.</p>
+  <p>Para cualquier cuestión sobre privacidad puedes escribir a <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
+
+  <h2><b>02</b>Qué datos tratamos y para qué</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>Datos</th><th>Dónde se guardan</th><th>Para qué</th></tr>
+    <tr><td>Respuestas de la bienvenida (objetivo, experiencia, días, material), plan semanal, entrenamientos, series, repeticiones, pesos, rutinas propias y logros</td><td>Solo en tu dispositivo</td><td>Que la app funcione: tu plan, tu historial y tu progreso</td></tr>
+    <tr><td>Datos corporales: sexo, edad, altura, peso y nivel de actividad</td><td>Solo en tu dispositivo</td><td>Calcular tu objetivo de calorías y macronutrientes</td></tr>
+    <tr><td>Diario de comidas (alimentos, cantidades, calorías y macros)</td><td>Solo en tu dispositivo</td><td>Llevar tu registro de nutrición</td></tr>
+    <tr><td>Fotos de comidas que decides escanear (Premium)</td><td>No se guardan</td><td>Estimar calorías y macronutrientes (ver punto 4)</td></tr>
+    <tr><td>Registro técnico de cada escaneo: identificador anónimo de compra, número de alimentos y fecha</td><td>Nuestro servidor (Supabase), 30 días</td><td>Aplicar el límite diario de escaneos y evitar abusos</td></tr>
+    <tr><td>Datos de suscripción: identificador anónimo, plan, fechas y recibos de compra</td><td>RevenueCat, Apple y Google</td><td>Verificar tu suscripción y permitirte restaurarla</td></tr>
+  </table>
+  </div>
+  <p>No pedimos tu nombre, tu correo ni tu número de teléfono, y la app no incluye herramientas de analítica ni de seguimiento publicitario.</p>
+
+  <h2><b>03</b>Apple Salud (HealthKit)</h2>
+  <p>Solo si lo activas en Perfil (planes Pro y Premium), y con el permiso que concedes en iOS, VYTRON:</p>
+  <ul>
+    <li><strong>Lee</strong> tus pasos, tu energía activa, tu peso y tus entrenamientos, para mostrarte tu actividad del día y calcular tus objetivos.</li>
+    <li><strong>Guarda</strong> en Salud tus entrenamientos de fuerza, tu peso corporal y, en Premium, las calorías y macros de tus comidas.</li>
+  </ul>
+  <p>Los datos de Salud se usan únicamente dentro de la app y en tu dispositivo. Nunca se envían a nuestros servidores ni a terceros, no se usan para publicidad ni para marketing y no se venden. Puedes retirar el permiso en cualquier momento en Ajustes › Salud › Acceso a datos y dispositivos › VYTRON.</p>
+
+  <h2><b>04</b>Cámara, fotos y análisis con inteligencia artificial</h2>
+  <p>La cámara y la galería solo se usan cuando tú lo pides para fotografiar o elegir una comida. Antes de enviarla, la app reduce la imagen. La foto viaja cifrada a nuestra función del servidor, que comprueba que tienes Premium y la reenvía al servicio de inteligencia artificial de <strong>Anthropic</strong> (Claude) para obtener una estimación de los alimentos, las cantidades y las calorías.</p>
+  <p>No guardamos la foto ni el resultado del análisis en nuestros servidores: el resultado vuelve a tu teléfono, lo revisas y, si quieres, lo guardas en tu diario. Anthropic trata la imagen por cuenta nuestra solo para devolver la estimación, según sus condiciones de uso de la API. Las cifras son siempre <strong>estimaciones</strong> y no sustituyen el consejo de un profesional de la salud o la nutrición.</p>
+
+  <h2><b>05</b>Notificaciones</h2>
+  <p>Si las activas, VYTRON programa en tu propio teléfono los recordatorios de entrenamiento, el aviso de racha y el aviso de fin de prueba gratuita. Son notificaciones locales: no usamos ningún servidor de notificaciones ni guardamos tu identificador de notificaciones. Puedes desactivarlas en Perfil o en los ajustes del teléfono.</p>
+
+  <h2><b>06</b>Base legal</h2>
+  <ul>
+    <li><strong>Ejecución del contrato</strong>: prestar el servicio y gestionar tu suscripción.</li>
+    <li><strong>Consentimiento explícito</strong>: datos de salud, cámara, fotos y notificaciones, que solo se tratan si los activas y puedes retirar en cualquier momento.</li>
+    <li><strong>Interés legítimo</strong>: el registro técnico de escaneos para aplicar límites de uso y proteger el servicio.</li>
+  </ul>
+
+  <h2><b>07</b>Con quién se comparten</h2>
+  <p>Solo con los proveedores necesarios para que la app funcione, que actúan como encargados del tratamiento o como plataformas de pago independientes:</p>
+  <ul>
+    <li><strong>Apple</strong> y <strong>Google</strong>: descarga de la app y cobro de las suscripciones.</li>
+    <li><strong>RevenueCat, Inc.</strong>: gestión y verificación de suscripciones.</li>
+    <li><strong>Supabase, Inc.</strong>: servidor de la función de escaneo y registro técnico de escaneos.</li>
+    <li><strong>Anthropic, PBC</strong>: análisis de las fotos de comida.</li>
+  </ul>
+  <p>Algunos de estos proveedores están en Estados Unidos. Las transferencias se realizan con las garantías previstas en el RGPD, como el Marco de Privacidad de Datos UE-EE. UU. o las cláusulas contractuales tipo de la Comisión Europea.</p>
+
+  <h2><b>08</b>Cuánto tiempo se conservan</h2>
+  <ul>
+    <li>Datos guardados en tu dispositivo: hasta que los borres en la app o desinstales VYTRON.</li>
+    <li>Registro técnico de escaneos: 30 días.</li>
+    <li>Datos de suscripción: mientras la suscripción esté activa y el tiempo que exijan las obligaciones legales y fiscales.</li>
+  </ul>
+
+  <h2><b>09</b>Tus derechos</h2>
+  <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad, y retirar tu consentimiento, escribiendo a <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>. Como la mayoría de tus datos están solo en tu teléfono, puedes borrarlos tú mismo eliminando sesiones en la app o desinstalándola. Para gestionar o cancelar la suscripción, usa los ajustes de tu cuenta de App Store o Google Play.</p>
+  <p>Si crees que no hemos tratado bien tus datos, puedes reclamar ante la <a href="https://www.aepd.es" rel="noopener">Agencia Española de Protección de Datos</a>.</p>
+
+  <h2><b>10</b>Menores</h2>
+  <p>VYTRON no está dirigida a menores de 14 años y no tratamos a sabiendas datos de menores de esa edad. Si eres padre, madre o tutor y crees que un menor nos ha facilitado datos, escríbenos y los eliminaremos.</p>
+
+  <h2><b>11</b>Seguridad</h2>
+  <p>Las comunicaciones con nuestro servidor van cifradas. Las claves de los servicios externos solo existen en el servidor, nunca dentro de la app, y la base de datos solo es accesible por la propia función del servidor.</p>
+
+  <h2><b>12</b>Cambios en esta política</h2>
+  <p>Si cambiamos cómo tratamos tus datos (por ejemplo, si añadimos publicidad en el plan gratuito o cuentas de usuario), actualizaremos esta página y te lo indicaremos en la app antes de que el cambio se aplique.</p>
+
+  <footer>TRAIN. EVOLVE. DOMINATE.</footer>
+</div>
+</body>
+</html>
