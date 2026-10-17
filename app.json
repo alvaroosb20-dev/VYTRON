@@ -61,6 +61,12 @@
           "healthSharePermission": "VYTRON lee tus pasos, tu energía activa y tu peso para mostrar tu actividad diaria y calcular tus objetivos.",
           "healthUpdatePermission": "VYTRON guarda en Salud tus entrenamientos, tu peso y, si lo activas, las calorías de tus comidas."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#B7FF36"
+        }
       ]
     ],
     "experiments": {

@@ -8,6 +8,7 @@ import { Button, Card, Screen, T } from '@/components/ui';
 import { tierAllows } from '@/config/plans';
 import { getExercise } from '@/data/exercises';
 import { getWorkout, totalSets } from '@/data/workouts';
+import { newlyUnlocked } from '@/lib/achievements';
 import { saveStrengthWorkout } from '@/lib/health';
 import { LoggedSet, useProgress } from '@/lib/progress';
 import { useSubscription } from '@/lib/subscription';
@@ -90,13 +91,16 @@ export default function WorkoutSession() {
         }
       }
       const end = new Date();
-      await logSession({ workoutId: workout.id, workoutName: workout.name, minutes: Math.max(1, Math.round(elapsed / 60)), sets });
+      const before = sessions;
+      const saved = await logSession({ workoutId: workout.id, workoutName: workout.name, minutes: Math.max(1, Math.round(elapsed / 60)), sets });
+      const unlocked = newlyUnlocked(before, [saved, ...before], settings.weeklyGoal);
       let healthNote = '';
       if (settings.healthSync && hasAccess('healthSync')) {
         healthNote = (await saveStrengthWorkout(startedAt.current, end)) ? ' Guardado también en Apple Salud.' : '';
       }
       setSaving(false);
-      Alert.alert('Sesión guardada', `${counts.completed} series en ${mmss(elapsed)}.${healthNote}`);
+      const badges = unlocked.length ? `\n\n🏆 ${unlocked.length === 1 ? 'Logro desbloqueado' : 'Logros desbloqueados'}: ${unlocked.map((a) => a.title).join(', ')}` : '';
+      Alert.alert(unlocked.length ? '¡NUEVO LOGRO!' : 'Sesión guardada', `${counts.completed} series en ${mmss(elapsed)}.${healthNote}${badges}`);
       router.back();
     };
     if (counts.completed < counts.all) {

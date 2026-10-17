@@ -1,5 +1,6 @@
 import { EXERCISES, getExercise, Muscle } from '@/data/exercises';
-import { Setting, WorkoutItem } from '@/data/workouts';
+import { getWorkout, Setting, WorkoutItem } from '@/data/workouts';
+import { Tier, tierAllows } from '@/config/plans';
 import type { Session } from './progress';
 
 /** 1RM estimado (fórmula de Epley). Solo fiable hasta ~12 repeticiones. */
@@ -100,5 +101,29 @@ export function generatePlan(goal: Goal, days: number, setting: Setting) {
   (DAY_LAYOUT[days] ?? DAY_LAYOUT[3]).forEach((d, idx) => (plan[d] = routines[idx % routines.length]));
   return plan;
 }
+
+// Rutinas gratuitas equivalentes por material, para quien aún no tiene plan de pago.
+const FREE_FALLBACK: Record<Setting, string[]> = {
+  Gimnasio: ['full-body-a', 'full-body-b', 'core-15', 'full-body-a', 'full-body-b', 'mobility'],
+  Mancuernas: ['full-body-a', 'full-body-b', 'core-15', 'full-body-a', 'full-body-b', 'mobility'],
+  'Sin material': ['home-bodyweight', 'core-15', 'home-bodyweight', 'mobility', 'home-bodyweight', 'core-15'],
+};
+
+/**
+ * Plan semanal que el usuario puede hacer de verdad con su nivel de suscripción.
+ * Cada rutina bloqueada se sustituye por una gratuita del mismo material.
+ */
+export function planForTier(goal: Goal, days: number, setting: Setting, tier: Tier) {
+  const full = generatePlan(goal, days, setting);
+  let k = 0;
+  return full.map((id) => {
+    if (!id) return null;
+    const w = getWorkout(id);
+    if (w && tierAllows(tier, w.tier)) return id;
+    return FREE_FALLBACK[setting][k++ % FREE_FALLBACK[setting].length];
+  });
+}
+
+export type Level = 'principiante' | 'intermedio' | 'avanzado';
 
 export const LIBRARY_SIZE = EXERCISES.length;

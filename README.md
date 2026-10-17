@@ -39,6 +39,12 @@ Compras, Apple Salud y el escáner necesitan un *development build* (`expo-dev-c
 
 Todo el bloqueo sale de `FEATURE_TIER` en `src/config/plans.ts`.
 
+## Conversión y retención
+
+- **Bienvenida (`app/onboarding.tsx`)**: 6 preguntas (objetivo, experiencia, días, material, datos corporales y hora de aviso), animación de "creando tu plan" y plan semanal con calorías estimadas. Termina en el paywall (`/paywall?from=onboarding`) o en la versión gratuita, que recibe el mismo plan con rutinas gratuitas equivalentes (`planForTier`). Quien ya tenía sesiones guardadas no la ve.
+- **Paywall**: selector anual/mensual con el ahorro real calculado con los precios de la tienda, prueba gratuita solo si la tienda la ofrece y el usuario es elegible, línea de tiempo de la prueba y aviso local dos días antes de que termine.
+- **Retención**: recordatorios locales solo los días con entrenamiento a la hora elegida (se reprograman al cambiar el plan o guardar una sesión; si ya entrenaste hoy no avisa), aviso de racha el domingo si la semana no está cumplida, y 10 logros en Progreso que se anuncian al terminar un entrenamiento.
+
 ## Estructura
 
 ```
@@ -54,7 +60,8 @@ app/
   body.tsx               Datos corporales y objetivo calórico
   food-scan.tsx          Escáner de comidas y registro manual
   recipes.tsx            Recetas
-  paywall.tsx            Planes y comparación
+  onboarding.tsx         Bienvenida: preguntas, plan a medida y paso al paywall
+  paywall.tsx            Planes, anual/mensual, prueba gratuita y comparación
 src/
   data/                  Ejercicios, rutinas, programas y recetas
   lib/subscription.tsx   Estado de suscripción verificado (RevenueCat)
@@ -63,6 +70,8 @@ src/
   lib/training.ts        1RM, progresión, discos, volumen, generador de plan
   lib/health.ts          Apple Salud (HealthKit)
   lib/foodScan.ts        Cliente del escáner
+  lib/reminders.ts       Recordatorios locales (expo-notifications)
+  lib/achievements.ts    Logros calculados a partir de las sesiones
 supabase/
   functions/food-scan/   Edge Function: verifica Premium y analiza la foto con IA
   migrations/            Tabla de límite diario de escaneos
@@ -70,9 +79,11 @@ supabase/
 
 ## Suscripciones (RevenueCat)
 
-1. Crea los productos mensuales en App Store Connect y Google Play Console.
-2. En RevenueCat: entitlements `pro` y `premium`, offering actual con los paquetes `pro_monthly` y `premium_monthly`.
+1. Crea los productos mensuales y anuales en App Store Connect y Google Play Console. Recomendado: prueba gratuita de 7 días en los anuales (oferta de introducción en Apple, fase gratuita en la oferta base de Google Play).
+2. En RevenueCat: entitlements `pro` y `premium`, offering actual con los paquetes `pro_monthly`, `premium_monthly`, `pro_annual` y `premium_annual`. Si no hay paquetes anuales, el paywall muestra solo el mensual.
 3. Claves públicas del SDK en `.env`.
+
+La app nunca anuncia una prueba que la tienda no ofrezca: los días salen del producto (`introPrice` en iOS, `freePhase` en Android) y en iOS se comprueba la elegibilidad.
 
 Reglas: el nivel sale **solo** de los entitlements activos que devuelve RevenueCat; los precios mostrados son los de la tienda (los de `plans.ts` son de referencia y desactivan la compra si la tienda no responde); restaurar y gestionar están en el paywall y en Perfil; los anuncios solo pueden aparecer en Free y nunca mientras se verifica.
 

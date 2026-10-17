@@ -1,7 +1,8 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from '@/components/Icon';
+import { useProgress } from '@/lib/progress';
 import { colors, fonts } from '@/theme/tokens';
 
 const TABS: { name: string; title: string; icon: IconName }[] = [
@@ -14,6 +15,9 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { ready, settings } = useProgress();
+  if (!ready) return null;
+  if (!settings.onboarded) return <Redirect href="/onboarding" />;
   return (
     <Tabs
       screenOptions={{
