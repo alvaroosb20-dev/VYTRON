@@ -3,13 +3,16 @@
 // localizado que devuelven App Store / Google Play (vía RevenueCat).
 
 export type Tier = 'free' | 'pro' | 'premium';
+export type Billing = 'monthly' | 'annual';
 
 export type Plan = {
   tier: Tier;
   name: string;
   fallbackPrice: string;
   period: string;
-  packageId?: string; // paquete en la "offering" actual de RevenueCat
+  packageId?: string; // paquete mensual en la "offering" actual de RevenueCat
+  annualPackageId?: string; // paquete anual (con o sin prueba gratuita, según lo configurado en la tienda)
+  fallbackAnnualPrice?: string;
   pitch: string;
   highlights: string[];
 };
@@ -29,6 +32,8 @@ export const PLANS: Plan[] = [
     fallbackPrice: '4,99 €',
     period: '/mes',
     packageId: 'pro_monthly',
+    annualPackageId: 'pro_annual',
+    fallbackAnnualPrice: '34,99 €',
     pitch: 'Para entrenar en serio y medir cada avance.',
     highlights: [
       'Sin anuncios',
@@ -48,6 +53,8 @@ export const PLANS: Plan[] = [
     fallbackPrice: '9,99 €',
     period: '/mes',
     packageId: 'premium_monthly',
+    annualPackageId: 'premium_annual',
+    fallbackAnnualPrice: '59,99 €',
     pitch: 'Entrenamiento y nutrición en un solo lugar.',
     highlights: [
       'Todo lo de Pro',

@@ -4,19 +4,30 @@ import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, Text, View } f
 import { Gate } from '@/components/Gate';
 import { Icon, IconName } from '@/components/Icon';
 import { Mark } from '@/components/Logo';
-import { Button, Card, Pill, Screen, SectionTitle, T } from '@/components/ui';
+import { Button, Card, Chips, Pill, Screen, SectionTitle, T } from '@/components/ui';
 import { BRAND, LEGAL } from '@/config/app';
 import { PLANS } from '@/config/plans';
 import { connectHealth, healthAvailable, latestWeightKg } from '@/lib/health';
 import { useProgress } from '@/lib/progress';
+import { notificationPermission } from '@/lib/reminders';
 import { useSubscription } from '@/lib/subscription';
 import { colors, fonts, radius, space } from '@/theme/tokens';
 
 export default function Profile() {
   const { tier, status, restore, manage, hasAccess } = useSubscription();
-  const { settings, setWeeklyGoal, setHealthSync, body, setBody } = useProgress();
+  const { settings, setWeeklyGoal, setHealthSync, body, setBody, setReminders } = useProgress();
   const [restoring, setRestoring] = useState(false);
   const [connecting, setConnecting] = useState(false);
+
+  const toggleReminders = async (on: boolean) => {
+    if (!on) return setReminders({ enabled: false });
+    if (Platform.OS === 'web') return Alert.alert('No disponible', 'Los recordatorios funcionan en la app de iPhone y Android.');
+    if (await notificationPermission(true)) return setReminders({ enabled: true });
+    Alert.alert('Notificaciones desactivadas', 'Actívalas para VYTRON en los ajustes del teléfono y vuelve a intentarlo.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Abrir ajustes', onPress: () => Linking.openSettings() },
+    ]);
+  };
   const plan = PLANS.find((p) => p.tier === tier)!;
 
   const onRestore = async () => {
@@ -82,6 +93,33 @@ export default function Profile() {
         </View>
         <Stepper onPress={() => setWeeklyGoal(settings.weeklyGoal - 1)} label="−" />
         <Stepper onPress={() => setWeeklyGoal(settings.weeklyGoal + 1)} label="+" />
+      </Card>
+
+      <SectionTitle title="RECORDATORIOS" />
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+          <View style={styles.healthIcon}><Icon name="calendar" color={colors.neon} /></View>
+          <View style={{ flex: 1 }}>
+            <T.Body style={{ fontFamily: fonts.semibold }}>Avisos de entrenamiento</T.Body>
+            <T.Small>Solo los días que toca entrenar, y un aviso el domingo si tu semana está en juego.</T.Small>
+          </View>
+          <Switch
+            value={settings.reminders.enabled}
+            onValueChange={toggleReminders}
+            trackColor={{ true: colors.neon, false: colors.line }}
+            thumbColor={colors.white}
+            ios_backgroundColor={colors.line}
+          />
+        </View>
+        {settings.reminders.enabled && (
+          <View style={{ marginTop: space.lg }}>
+            <Chips<number>
+              value={settings.reminders.hour}
+              onChange={(h) => setReminders({ hour: h, minute: 0 })}
+              options={[7, 9, 13, 17, 18, 19, 20, 21].map((h) => ({ value: h, label: `${String(h).padStart(2, '0')}:00` }))}
+            />
+          </View>
+        )}
       </Card>
 
       <SectionTitle title="APPLE SALUD" />

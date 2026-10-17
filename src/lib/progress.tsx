@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { DEFAULT_WEEK, Workout } from '@/data/workouts';
+import { DEFAULT_WEEK, Setting, Workout } from '@/data/workouts';
+import type { Goal, Level } from './training';
 
 // Datos del usuario guardados en el dispositivo. Solo lo que el usuario registra: sin datos de ejemplo.
 
@@ -11,11 +12,18 @@ export type Sex = 'hombre' | 'mujer';
 export type Activity = 1.2 | 1.375 | 1.55 | 1.725 | 1.9;
 export type BodyProfile = { sex?: Sex; age?: number; heightCm?: number; weightKg?: number; activity?: Activity; goal?: 'perder' | 'mantener' | 'ganar' };
 
+export type OnboardingAnswers = { goal: Goal; level: Level; days: number; setting: Setting };
+export type Reminders = { enabled: boolean; hour: number; minute: number };
+
 type Settings = {
   weeklyGoal: number;
   weekPlan: (string | null)[];
   activeProgram?: { id: string; startedAt: string };
   healthSync: boolean;
+  /** Si ya ha pasado por la bienvenida. Quien ya tenía sesiones guardadas no la ve. */
+  onboarded: boolean;
+  onboarding?: OnboardingAnswers;
+  reminders: Reminders;
 };
 
 type Store = {
@@ -29,7 +37,7 @@ type Store = {
 const KEY = 'vytron.progress.v2';
 const DEFAULTS: Store = {
   sessions: [],
-  settings: { weeklyGoal: 3, weekPlan: DEFAULT_WEEK, healthSync: false },
+  settings: { weeklyGoal: 3, weekPlan: DEFAULT_WEEK, healthSync: false, onboarded: false, reminders: { enabled: false, hour: 19, minute: 0 } },
   customWorkouts: [],
   weights: [],
   body: {},
@@ -49,6 +57,8 @@ type Ctx = Store & {
   addWeight: (kg: number) => Promise<void>;
   setBody: (b: BodyProfile) => Promise<void>;
   setHealthSync: (on: boolean) => Promise<void>;
+  completeOnboarding: (a: OnboardingAnswers, plan: (string | null)[], body: BodyProfile) => Promise<void>;
+  setReminders: (r: Partial<Reminders>) => Promise<void>;
 };
 
 const ProgressContext = createContext<Ctx | null>(null);
@@ -64,9 +74,16 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         const raw = (await AsyncStorage.getItem(KEY)) ?? (await AsyncStorage.getItem('vytron.progress.v1'));
         if (raw) {
           const d = JSON.parse(raw);
+          const sessions: Session[] = Array.isArray(d.sessions) ? d.sessions : [];
+          const saved = d.settings ?? {};
           const next: Store = {
-            sessions: Array.isArray(d.sessions) ? d.sessions : [],
-            settings: { ...DEFAULTS.settings, ...(d.settings ?? {}) },
+            sessions,
+            settings: {
+              ...DEFAULTS.settings,
+              ...saved,
+              onboarded: saved.onboarded ?? sessions.length > 0,
+              reminders: { ...DEFAULTS.settings.reminders, ...(saved.reminders ?? {}) },
+            },
             customWorkouts: Array.isArray(d.customWorkouts) ? d.customWorkouts : [],
             weights: Array.isArray(d.weights) ? d.weights : [],
             body: d.body ?? {},
@@ -136,6 +153,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       })),
     setBody: (b) => update((st) => ({ ...st, body: { ...st.body, ...b } })),
     setHealthSync: (on) => update((st) => ({ ...st, settings: { ...st.settings, healthSync: on } })),
+    completeOnboarding: (a, plan, body) =>
+      update((st) => ({
+        ...st,
+        body: { ...st.body, ...body },
+        weights: body.weightKg && !st.weights.length ? [{ date: new Date().toISOString(), kg: body.weightKg }] : st.weights,
+        settings: { ...st.settings, onboarded: true, onboarding: a, weekPlan: plan, weeklyGoal: a.days, activeProgram: undefined },
+      })),
+    setReminders: (r) => update((st) => ({ ...st, settings: { ...st.settings, reminders: { ...st.settings.reminders, ...r } } })),
   }), [store, ready, update]);
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

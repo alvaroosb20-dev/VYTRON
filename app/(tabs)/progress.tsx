@@ -7,6 +7,7 @@ import { Button, Card, FadeIn, Screen, SectionTitle, T } from '@/components/ui';
 import { exerciseName } from '@/data/workouts';
 import { goalStreak, personalRecords, Session, sessionsThisWeek, useProgress, weeklyHistory } from '@/lib/progress';
 import { useSubscription } from '@/lib/subscription';
+import { achievementStatus } from '@/lib/achievements';
 import { estimate1RM, sessionVolume, setsByMuscle } from '@/lib/training';
 import { colors, fonts, space } from '@/theme/tokens';
 
@@ -22,6 +23,8 @@ export default function Progress() {
   const totalMinutes = sessions.reduce((a, s) => a + s.minutes, 0);
   const muscles = Object.entries(setsByMuscle(sessions, Date.now() - 7 * DAY)).sort((a, b) => b[1] - a[1]);
   const maxMuscle = Math.max(1, ...muscles.map(([, v]) => v));
+  const achievements = achievementStatus(sessions, settings.weeklyGoal);
+  const unlocked = achievements.filter((a) => a.unlocked).length;
 
   const period = (from: number, to: number) => sessions.filter((s) => { const t = new Date(s.completedAt).getTime(); return t >= from && t < to; });
   const now = Date.now();
@@ -53,6 +56,21 @@ export default function Progress() {
           <Stat label="SESIONES" value={`${sessions.length}`} />
         </View>
       </FadeIn>
+
+      <SectionTitle title={`LOGROS · ${unlocked}/${achievements.length}`} />
+      <View style={styles.badges}>
+        {achievements.map((a) => (
+          <View key={a.id} style={[styles.badge, !a.unlocked && { opacity: 0.5 }]} accessibilityLabel={`${a.title}: ${a.description}${a.unlocked ? ', conseguido' : ''}`}>
+            <View style={[styles.badgeIcon, a.unlocked && { backgroundColor: colors.neon }]}>
+              <Icon name={a.unlocked ? a.icon : 'lock'} size={18} color={a.unlocked ? colors.neonInk : colors.muted} />
+            </View>
+            <T.Label style={{ fontSize: 10, color: a.unlocked ? colors.white : colors.muted, textAlign: 'center' }} numberOfLines={2}>{a.title}</T.Label>
+            {!a.unlocked && (
+              <View style={styles.badgeBar}><View style={[styles.badgeFill, { width: `${Math.round(a.value * 100)}%` as `${number}%` }]} /></View>
+            )}
+          </View>
+        ))}
+      </View>
 
       <SectionTitle title={`SESIONES POR SEMANA · ÚLTIMAS ${weeks}`} />
       <Card>
@@ -204,6 +222,11 @@ function WeightChart({ data }: { data: { date: string; kg: number }[] }) {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', gap: space.sm, marginTop: space.lg },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  badge: { width: '31.5%', backgroundColor: colors.card, borderRadius: 16, padding: space.md, alignItems: 'center', gap: 8 },
+  badgeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.graphite, alignItems: 'center', justifyContent: 'center' },
+  badgeBar: { alignSelf: 'stretch', height: 4, borderRadius: 2, backgroundColor: colors.graphite, overflow: 'hidden' },
+  badgeFill: { height: '100%', backgroundColor: colors.neon },
   stat: { flex: 1, backgroundColor: colors.card, borderRadius: 16, padding: space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   line: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line },

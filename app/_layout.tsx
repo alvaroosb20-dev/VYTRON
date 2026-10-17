@@ -6,7 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NutritionProvider } from '@/lib/nutrition';
-import { ProgressProvider } from '@/lib/progress';
+import { ProgressProvider, useProgress } from '@/lib/progress';
+import { syncTrainingReminders } from '@/lib/reminders';
 import { SubscriptionProvider } from '@/lib/subscription';
 import { colors } from '@/theme/tokens';
 
@@ -33,8 +34,10 @@ export default function RootLayout() {
         <ProgressProvider>
           <NutritionProvider>
           <StatusBar style="light" />
+          <RemindersSync />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.black }, animation: 'fade' }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
             <Stack.Screen name="workout/[id]" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
             <Stack.Screen name="exercise/[id]" options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="program/[id]" options={{ animation: 'slide_from_right' }} />
@@ -52,4 +55,15 @@ export default function RootLayout() {
       </SubscriptionProvider>
     </SafeAreaProvider>
   );
+}
+
+/** Mantiene los recordatorios al día con el plan, el horario y las sesiones guardadas. */
+function RemindersSync() {
+  const { ready, settings, sessions, customWorkouts } = useProgress();
+  const { reminders, weekPlan, weeklyGoal } = settings;
+  useEffect(() => {
+    if (!ready) return;
+    syncTrainingReminders({ reminders, weekPlan, weeklyGoal, sessions, customWorkouts });
+  }, [ready, reminders, weekPlan, weeklyGoal, sessions, customWorkouts]);
+  return null;
 }
