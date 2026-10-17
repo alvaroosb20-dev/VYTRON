@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
   const confidence = ['alta', 'media', 'baja'].includes(parsed.confidence) ? parsed.confidence : 'media';
 
   await supabase.from('food_scans').insert({ app_user_id: appUserId, items_count: items.length });
+  // Retención: los registros de escaneo se borran a los 30 días (así lo dice la política de privacidad).
+  await supabase.from('food_scans').delete().lt('created_at', new Date(Date.now() - 30 * 864e5).toISOString());
 
   return json(200, { items, confidence, notes: typeof parsed.notes === 'string' ? parsed.notes.slice(0, 200) : '' });
 });
