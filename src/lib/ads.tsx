@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
+import { loadAdsModule } from './adsModule';
 import { useSubscription } from './subscription';
 
 /**
@@ -23,15 +24,8 @@ type Ctx = {
 
 const AdsContext = createContext<Ctx>({ ready: false, privacyOptionsRequired: false, showPrivacyOptions: async () => {} });
 
-// Módulo nativo: no existe en web ni en Expo Go.
-export function adsModule(): typeof import('react-native-google-mobile-ads') | null {
-  if (Platform.OS === 'web') return null;
-  try {
-    return require('react-native-google-mobile-ads');
-  } catch {
-    return null;
-  }
-}
+// Módulo nativo: no existe en web ni en Expo Go (ver adsModule.native.ts).
+export const adsModule = loadAdsModule;
 
 export function AdsProvider({ children }: { children: React.ReactNode }) {
   const { showAds } = useSubscription();
