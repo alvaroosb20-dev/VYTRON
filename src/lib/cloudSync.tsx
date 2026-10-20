@@ -16,9 +16,15 @@ import { mergeNutrition, mergeProgress, nutritionForCloud } from './syncMerge';
  */
 
 export type SyncStatus = 'off' | 'idle' | 'syncing' | 'error';
-type Ctx = { status: SyncStatus; lastSyncedAt: Date | null; syncNow: () => Promise<void> };
+type Ctx = {
+  status: SyncStatus;
+  lastSyncedAt: Date | null;
+  syncNow: () => Promise<void>;
+  /** La primera sincronización tras iniciar sesión ha terminado (bien o mal). */
+  initialSyncDone: boolean;
+};
 
-const SyncContext = createContext<Ctx>({ status: 'off', lastSyncedAt: null, syncNow: async () => {} });
+const SyncContext = createContext<Ctx>({ status: 'off', lastSyncedAt: null, syncNow: async () => {}, initialSyncDone: true });
 const OWNER_KEY = 'vytron.sync.owner';
 const DEBOUNCE_MS = 2500;
 
@@ -30,6 +36,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const nutrition = useNutrition();
   const [status, setStatus] = useState<SyncStatus>('off');
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [initialSyncDone, setInitialSyncDone] = useState(true);
 
   // Refs para leer siempre lo último sin re-crear la función de sincronizar.
   const p = useRef(progress);
@@ -93,6 +100,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     } catch {
       setStatus('error');
     } finally {
+      setInitialSyncDone(true);
       running.current = false;
       if (pending.current) {
         pending.current = false;
@@ -108,9 +116,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     if (!userId) {
       setStatus('off');
       setLastSyncedAt(null);
+      setInitialSyncDone(true);
       return;
     }
+    setInitialSyncDone(false);
     sync();
+    // Sin red, no se bloquea a nadie: a los 10 s se continúa con los datos locales.
+    const t = setTimeout(() => setInitialSyncDone(true), 10000);
+    return () => clearTimeout(t);
   }, [userId, progress.ready, nutrition.ready, sync]);
 
   // Tras cada cambio local, con un pequeño retardo para agrupar varios cambios.
@@ -127,7 +140,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, [userId, sync]);
 
-  const value = useMemo(() => ({ status, lastSyncedAt, syncNow: sync }), [status, lastSyncedAt, sync]);
+  const value = useMemo(() => ({ status, lastSyncedAt, syncNow: sync, initialSyncDone }), [status, lastSyncedAt, sync, initialSyncDone]);
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
 

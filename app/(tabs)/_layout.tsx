@@ -1,7 +1,9 @@
 import { Redirect, Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from '@/components/Icon';
+import { useAuth } from '@/lib/auth';
+import { useSync } from '@/lib/cloudSync';
 import { useProgress } from '@/lib/progress';
 import { colors, fonts } from '@/theme/tokens';
 
@@ -16,8 +18,14 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { ready, settings } = useProgress();
+  const { user } = useAuth();
+  const { initialSyncDone } = useSync();
   if (!ready) return null;
-  if (!settings.onboarded) return <Redirect href="/onboarding" />;
+  if (!settings.onboarded) {
+    // En un teléfono nuevo, primero se descargan los datos de la cuenta: quizá ya hizo la configuración.
+    if (user && !initialSyncDone) return <SyncWait />;
+    return <Redirect href="/onboarding" />;
+  }
   return (
     <Tabs
       screenOptions={{
@@ -42,5 +50,14 @@ export default function TabsLayout() {
         />
       ))}
     </Tabs>
+  );
+}
+
+function SyncWait() {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <ActivityIndicator color={colors.neon} />
+      <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.muted }}>Recuperando tus datos…</Text>
+    </View>
   );
 }

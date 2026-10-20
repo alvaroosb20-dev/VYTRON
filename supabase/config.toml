@@ -7,3 +7,12 @@ verify_jwt = false
 [functions.delete-account]
 # Solo usuarios con sesión: Supabase comprueba el JWT antes de ejecutar la función.
 verify_jwt = true
+
+# Plantillas de email en español (al usar la CLI; en el panel se pegan a mano).
+[auth.email.template.confirmation]
+subject = "Confirma tu cuenta de VYTRON"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Crea una contraseña nueva para VYTRON"
+content_path = "./supabase/templates/recovery.html"

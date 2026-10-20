@@ -91,8 +91,8 @@ export default function Profile() {
       <SectionTitle title="TUS DATOS" />
       <Row
         icon="profile"
-        title="Cuenta"
-        detail={auth.user ? (sync.status === 'error' ? 'Sin sincronizar' : 'Sincronizada') : auth.available ? 'Crear o iniciar sesión' : undefined}
+        title={auth.displayName ? `Cuenta · ${auth.displayName}` : 'Cuenta'}
+        detail={auth.user ? (sync.status === 'error' ? 'Sin sincronizar' : 'Sincronizada') : undefined}
         onPress={() => router.push('/account')}
       />
       <View style={{ height: space.sm }} />

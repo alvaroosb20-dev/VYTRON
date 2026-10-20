@@ -110,9 +110,43 @@ Las claves secretas nunca van en la app.
 
 `react-native-health` con su plugin de Expo (permisos y textos en `app.json`). El usuario lo activa en Perfil. Lee pasos, energía activa y peso; guarda entrenamientos de fuerza (sin calorías inventadas), peso corporal y, en Premium, calorías y macros de las comidas. En Android no se muestra.
 
+## Arranque y acceso
+
+Flujo (prompt maestro de acceso):
+
+| Situación | Qué ve el usuario |
+|---|---|
+| Primera vez | Pantalla de carga → Bienvenida → Iniciar sesión o Crear cuenta → Configuración del perfil fitness → App |
+| Con sesión guardada | Pantalla de carga → App |
+| Tras cerrar sesión | Pantalla de carga → Bienvenida |
+| Sesión caducada o revocada | Pantalla de carga → Iniciar sesión (email puesto y aviso) |
+
+- **Pantalla de carga** (`src/components/Splash.tsx`): logo con fundido y escala, brillo verde, eslogan y línea de carga. La línea avanza hasta ~70 % y solo se completa cuando la sesión y los datos locales están comprobados (mínimo 1,5 s). Si la comprobación falla o tarda más de 8 s, muestra el error y «Reintentar». Respeta «Reducir movimiento». Solo aparece al abrir la app. La pantalla nativa es solo fondo (#080808) para que no haya saltos.
+- **Rutas protegidas** (`app/_layout.tsx`, `Stack.Protected`): sin sesión solo existe el grupo `(auth)`; con sesión, la app. La navegación entre ambos es automática al iniciar o cerrar sesión.
+- **Pantallas** (`app/(auth)/`): `welcome`, `login`, `register`, `forgot-password` y `verify-email`. Componentes compartidos en `src/components/authUI.tsx`.
+- **Validaciones**: formato de email, campos vacíos, contraseña de 8+ caracteres con letras y números (lista en vivo), confirmación de contraseña y aceptación de términos y del consentimiento de datos de salud (RGPD art. 9). Errores en español. Botones bloqueados mientras se envía.
+- **Cuentas duplicadas**: Supabase no revela si un email existe; la app lo detecta (usuario sin identidades) y ofrece ir a iniciar sesión.
+- **Email sin confirmar**: el login ofrece reenviar el enlace; la pantalla de verificación permite reenviarlo cada 60 s.
+- **Recuperar contraseña**: Supabase envía el enlace → `/nueva-contrasena` en la web → contraseña nueva. Solo se confirma el envío si Supabase lo acepta.
+- **Sesión**: la guarda Supabase en el almacenamiento de la app y la renueva sola. «Recordarme» no se incluye: la sesión siempre se recuerda de forma segura hasta que el usuario la cierra.
+- **Nombre**: se guarda en el perfil de Supabase (`user_metadata.name`) y se muestra en Perfil › Cuenta.
+- **Teléfono nuevo**: si el usuario ya tenía datos en la nube, la app los descarga antes de decidir si mostrar la configuración inicial.
+
+### Configuración externa del acceso
+
+1. **Supabase › Authentication › URL Configuration**: Site URL `https://vytron-eta.vercel.app` y Redirect URLs `https://vytron-eta.vercel.app/**`.
+2. **Supabase › Authentication › Providers › Email**: «Confirm email» activado; longitud mínima de contraseña 8 y requisito «letras y números».
+3. **Supabase › Authentication › Emails**: pega las plantillas de `supabase/templates/` (asuntos en `supabase/config.toml`).
+4. **SMTP propio** (Resend o Brevo) antes de publicar: el correo de Supabase solo envía unos pocos emails por hora.
+5. **Continuar con Apple** (opcional, iPhone):
+   - Apple Developer › Identifiers › `app.vytron` › activar **Sign in with Apple**.
+   - Supabase › Authentication › Providers › **Apple**: activar y añadir `app.vytron` en «Client IDs». Para el flujo nativo no hace falta clave secreta.
+   - En `.env`: `EXPO_PUBLIC_APPLE_SIGN_IN=1` y nueva compilación. Sin esto el botón no aparece.
+6. **Continuar con Google**: no incluido. Necesita IDs de cliente OAuth de Google Cloud (iOS, Android y web) y el proveedor Google en Supabase. Si se añade Google, Apple exige ofrecer también «Continuar con Apple».
+
 ## Cuentas y sincronización
 
-La cuenta es opcional (email y contraseña con Supabase Auth). Sin cuenta, todo se guarda en el teléfono.
+Cuenta obligatoria (email y contraseña con Supabase Auth; ver «Arranque y acceso»). Los datos se guardan en el teléfono y se sincronizan con la nube.
 
 - `user_data`: una fila por usuario con el progreso y el diario de comidas en JSON, protegida con RLS (cada usuario solo ve la suya). Migración en `supabase/migrations/20261020000000_user_data.sql`.
 - `src/lib/cloudSync.tsx` sincroniza al iniciar sesión, al volver a la app y 2,5 s después de cada cambio. La fusión (`src/lib/syncMerge.ts`) une sesiones, rutinas, pesos y comidas por id, respeta lo borrado en cualquier dispositivo y, en ajustes, gana la copia más reciente. Las fotos de comida no se suben.

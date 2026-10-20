@@ -32,6 +32,12 @@ export const LEGAL = {
 
 export const SUPPORT_EMAIL = 'alvaroosb20@gmail.com';
 
+/**
+ * «Continuar con Apple». Activar SOLO cuando estén configurados el proveedor Apple en Supabase
+ * y la capacidad Sign in with Apple en Apple Developer (ver README). Variable: EXPO_PUBLIC_APPLE_SIGN_IN=1
+ */
+export const APPLE_SIGN_IN_ENABLED = process.env.EXPO_PUBLIC_APPLE_SIGN_IN === '1';
+
 /** Hay backend configurado: cuentas, sincronización y escáner disponibles. */
 export const BACKEND_READY = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
