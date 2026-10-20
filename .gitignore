@@ -9,8 +9,9 @@ android/
 *.p12
 *.key
 *.mobileprovision
-.env
+# .env se sube: solo lleva claves PÚBLICAS. Lo privado, en .env.local (nunca se sube).
 .env.local
+.env.*.local
 .DS_Store
 expo-env.d.ts
 assets/preview/
