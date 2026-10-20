@@ -11,9 +11,13 @@ export const REVENUECAT_KEY = Platform.select({
   default: undefined,
 });
 
-// Backend (Supabase). Solo valores públicos: la clave anónima está pensada para el cliente.
-export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+// Backend (Supabase, proyecto «vytron», UE-Irlanda). Ambos valores son PÚBLICOS por diseño:
+// la seguridad la dan las políticas RLS (cada usuario solo accede a su fila) y las claves
+// secretas viven únicamente en el servidor. Se pueden sobrescribir con variables de entorno.
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://dycoqoehcdymxblfvbyv.supabase.co';
+export const SUPABASE_ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5Y29xb2VoY2R5bXhibGZ2Ynl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTczMTIsImV4cCI6MjEwODA3MzMxMn0.20I3xLdWiul_yJAo7q64OuJVq1tW0J5cjnLWV0uAVdE';
 export const FOOD_SCAN_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/food-scan` : '';
 
 // Web pública de VYTRON (Vercel). Las páginas legales son HTML estático en public/.

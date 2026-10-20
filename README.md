@@ -121,16 +121,15 @@ La cuenta es opcional (email y contraseña con Supabase Auth). Sin cuenta, todo 
 - Borrar cuenta: Perfil › Cuenta › Eliminar cuenta llama a la función `delete-account`, que borra el usuario y, en cascada, sus datos (obligatorio en App Store y Google Play).
 - Recuperar contraseña: el email lleva a `/nueva-contrasena` en la web; la confirmación de cuenta, a `/cuenta-confirmada`.
 
-Puesta en marcha:
+Estado (20/10/2026): proyecto **vytron** (`dycoqoehcdymxblfvbyv`, UE-Irlanda) creado, con las tablas `user_data` y `food_scans` y las funciones `delete-account` y `food-scan` desplegadas. La URL y la clave pública ya están en `src/config/app.ts`.
 
-```bash
-supabase link --project-ref TU_PROYECTO
-supabase db push
-supabase functions deploy delete-account
-supabase functions deploy food-scan
-```
+Falta en el panel de Supabase:
 
-En Supabase › Authentication › URL Configuration: Site URL `https://vytron-eta.vercel.app` y añade `https://vytron-eta.vercel.app/**` a Redirect URLs. En Vercel añade `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` para que funcione la página de nueva contraseña.
+1. Authentication › URL Configuration: Site URL `https://vytron-eta.vercel.app` y en Redirect URLs `https://vytron-eta.vercel.app/**`.
+2. Authentication › Emails › SMTP: un servidor de correo propio (Resend, Brevo…). El de Supabase solo envía unos pocos emails por hora.
+3. Edge Functions › Secrets: `ANTHROPIC_API_KEY` y `REVENUECAT_SECRET_KEY` para el escáner.
+
+Si cambias de proyecto: `supabase link`, `supabase db push` y `supabase functions deploy` para cada función.
 
 ## Anuncios y consentimiento (RGPD)
 
@@ -181,7 +180,8 @@ Búsqueda de antecedentes (20/10/2026):
 
 ## Pendiente
 
-- Crear el proyecto de Supabase de VYTRON (el plan gratuito ya tiene 2 proyectos activos) y desplegar las funciones.
+- Los 3 ajustes del panel de Supabase de la sección «Cuentas y sincronización».
+- RevenueCat: cuenta, apps, productos y claves (`EXPO_PUBLIC_RC_IOS_KEY`, `EXPO_PUBLIC_RC_ANDROID_KEY` y la secreta en Supabase).
 - Cuenta de AdMob, mensajes de privacidad y los IDs reales.
 - Registrar `vytron.app` y la marca en OEPM o EUIPO.
 - Fotos con licencia, si se quieren además del mapa muscular.
