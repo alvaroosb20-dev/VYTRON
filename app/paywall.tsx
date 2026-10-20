@@ -147,7 +147,7 @@ export default function Paywall() {
           <Pressable onPress={manage} hitSlop={8}><Text style={styles.link}>Gestionar cuenta</Text></Pressable>
         </View>
         <View style={styles.links}>
-          <Pressable onPress={() => LEGAL.terms && Linking.openURL(LEGAL.terms)} hitSlop={8}><Text style={styles.legal}>Términos</Text></Pressable>
+          <Pressable onPress={() => LEGAL.terms && Linking.openURL(LEGAL.terms)} hitSlop={8}><Text style={styles.legal}>Términos y condiciones</Text></Pressable>
           <Pressable onPress={() => LEGAL.privacy && Linking.openURL(LEGAL.privacy)} hitSlop={8}><Text style={styles.legal}>Privacidad</Text></Pressable>
         </View>
         <Text style={styles.slogan}>{BRAND.slogan}</Text>

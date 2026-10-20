@@ -10,5 +10,17 @@
       "destination": "/index.html"
     }
   ],
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/condiciones",
+      "destination": "/terminos",
+      "permanent": true
+    },
+    {
+      "source": "/terminos-y-condiciones",
+      "destination": "/terminos",
+      "permanent": true
+    }
+  ]
 }

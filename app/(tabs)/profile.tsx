@@ -163,7 +163,7 @@ export default function Profile() {
 
       <SectionTitle title="LEGAL" />
       <Card style={{ paddingVertical: space.xs }}>
-        <Row icon="report" title="Términos de uso" onPress={() => LEGAL.terms && Linking.openURL(LEGAL.terms)} flat />
+        <Row icon="report" title="Términos y condiciones" onPress={() => LEGAL.terms && Linking.openURL(LEGAL.terms)} flat />
         <Row icon="lock" title="Privacidad" onPress={() => LEGAL.privacy && Linking.openURL(LEGAL.privacy)} flat line />
         <Row icon="book" title="Soporte" onPress={() => Linking.openURL(LEGAL.support)} flat line />
         {ads.privacyOptionsRequired && <Row icon="target" title="Privacidad de anuncios" onPress={ads.showPrivacyOptions} flat line />}
