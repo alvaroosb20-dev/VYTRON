@@ -19,7 +19,7 @@ import { colors, fonts, radius, space } from '@/theme/tokens';
 
 type Step = 'welcome' | 'goal' | 'level' | 'days' | 'setting' | 'body' | 'reminder' | 'building' | 'plan';
 const STEPS: Step[] = ['welcome', 'goal', 'level', 'days', 'setting', 'body', 'reminder', 'building', 'plan'];
-const QUESTIONS = STEPS.filter((s) => s !== 'welcome' && s !== 'building' && s !== 'plan');
+const QUESTIONS: Step[] = STEPS.filter((s) => s !== 'welcome' && s !== 'building' && s !== 'plan');
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DAY = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
