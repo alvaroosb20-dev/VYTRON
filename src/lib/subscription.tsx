@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Linking, Platform } from 'react-native';
 import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 import { REVENUECAT_KEY, STORE_MANAGE_URL } from '@/config/app';
+import { useAuth } from './auth';
 import { Billing, ENTITLEMENTS, FEATURE_TIER, Feature, PLANS, Tier, tierAllows } from '@/config/plans';
 
 /**
@@ -105,6 +106,27 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (configured.current) Purchases.removeCustomerInfoUpdateListener(onUpdate);
     };
   }, [loadOfferings]);
+
+  // La suscripción queda ligada a la cuenta de VYTRON: se recupera al iniciar sesión en otro teléfono.
+  const { user } = useAuth();
+  const linkedUser = useRef<string | null>(null);
+  useEffect(() => {
+    const Purchases = getPurchases();
+    if (!Purchases || status !== 'ready') return;
+    const id = user?.id ?? null;
+    if (id === linkedUser.current) return;
+    (async () => {
+      try {
+        if (id) {
+          const { customerInfo } = await Purchases.logIn(id);
+          setInfo(customerInfo);
+        } else if (linkedUser.current) {
+          setInfo(await Purchases.logOut());
+        }
+        linkedUser.current = id;
+      } catch {}
+    })();
+  }, [user?.id, status]);
 
   const tier = tierFromCustomerInfo(info);
 

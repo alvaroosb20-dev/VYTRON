@@ -110,15 +110,78 @@ Las claves secretas nunca van en la app.
 
 `react-native-health` con su plugin de Expo (permisos y textos en `app.json`). El usuario lo activa en Perfil. Lee pasos, energía activa y peso; guarda entrenamientos de fuerza (sin calorías inventadas), peso corporal y, en Premium, calorías y macros de las comidas. En Android no se muestra.
 
+## Cuentas y sincronización
+
+La cuenta es opcional (email y contraseña con Supabase Auth). Sin cuenta, todo se guarda en el teléfono.
+
+- `user_data`: una fila por usuario con el progreso y el diario de comidas en JSON, protegida con RLS (cada usuario solo ve la suya). Migración en `supabase/migrations/20261020000000_user_data.sql`.
+- `src/lib/cloudSync.tsx` sincroniza al iniciar sesión, al volver a la app y 2,5 s después de cada cambio. La fusión (`src/lib/syncMerge.ts`) une sesiones, rutinas, pesos y comidas por id, respeta lo borrado en cualquier dispositivo y, en ajustes, gana la copia más reciente. Las fotos de comida no se suben.
+- Si en el teléfono había datos de otra cuenta, no se mezclan.
+- La suscripción se liga a la cuenta (`Purchases.logIn`): al iniciar sesión en otro teléfono se recupera el plan.
+- Borrar cuenta: Perfil › Cuenta › Eliminar cuenta llama a la función `delete-account`, que borra el usuario y, en cascada, sus datos (obligatorio en App Store y Google Play).
+- Recuperar contraseña: el email lleva a `/nueva-contrasena` en la web; la confirmación de cuenta, a `/cuenta-confirmada`.
+
+Puesta en marcha:
+
+```bash
+supabase link --project-ref TU_PROYECTO
+supabase db push
+supabase functions deploy delete-account
+supabase functions deploy food-scan
+```
+
+En Supabase › Authentication › URL Configuration: Site URL `https://vytron-eta.vercel.app` y añade `https://vytron-eta.vercel.app/**` a Redirect URLs. En Vercel añade `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` para que funcione la página de nueva contraseña.
+
+## Anuncios y consentimiento (RGPD)
+
+Google AdMob con `react-native-google-mobile-ads`, solo en Free:
+
+1. Al abrir la app en Free se muestra el formulario de consentimiento de Google (UMP, certificado IAB TCF v2.2). En iPhone incluye el aviso de seguimiento (ATT) si lo activas en AdMob › Privacidad y mensajes.
+2. Solo si el SDK permite pedir anuncios se inicializa AdMob (`delayAppMeasurementInit` evita medir antes).
+3. Perfil › Privacidad de anuncios permite cambiar la decisión cuando la ley lo exige.
+4. Con Pro o Premium verificados no se carga el SDK ni se pide consentimiento.
+
+Configuración: crea la app y un bloque de banner en AdMob y define `ADMOB_IOS_APP_ID`, `ADMOB_ANDROID_APP_ID`, `EXPO_PUBLIC_ADMOB_BANNER_IOS` y `EXPO_PUBLIC_ADMOB_BANNER_ANDROID` (`app.config.js` las inyecta). En desarrollo se usan los IDs de prueba de Google; en producción, sin IDs reales no se muestra ningún anuncio. En AdMob crea los mensajes de RGPD y de iOS (ATT) en Privacidad y mensajes.
+
+## Imágenes de ejercicios
+
+Cada ejercicio muestra un mapa muscular propio (frente y espalda) con el músculo principal en verde y los secundarios atenuados: `src/components/MuscleMap.tsx`. Es un dibujo original, sin licencias de terceros.
+
+Para añadir fotos o vídeos con licencia, regístralos en `src/data/media.ts` con autor y licencia: la ficha del ejercicio muestra la foto y el crédito.
+
+## Web y páginas legales
+
+`public/` se publica tal cual en Vercel, en `https://vytron-eta.vercel.app`:
+
+| Página | URL | Uso |
+|---|---|---|
+| Política de privacidad | `/privacidad` | App Store Connect, Google Play, enlaces en la app |
+| Términos de uso | `/terminos` | App Store (EULA), paywall |
+| Soporte | `/soporte` | URL de soporte de App Store; `/soporte#eliminar-cuenta` para el formulario de borrado de Google Play |
+| Cuenta confirmada | `/cuenta-confirmada` | Destino del email de confirmación |
+
+Titular: Álvaro Santana Bencomo, Santa Cruz de Tenerife. Contacto: alvaroosb20@gmail.com (cámbialo en `public/*.html` y `SUPPORT_EMAIL` en `src/config/app.ts` si prefieres otro). Revisa los textos con un asesor antes del lanzamiento y añade tu NIF en `terminos.html` si facturas como autónomo.
+
+## Identificadores
+
+- iOS bundle ID y Android package: `app.vytron` (dominio inverso de `vytron.app`).
+- `vytron.app` y `vytron.es` estaban disponibles el 20/10/2026 (unos 20 USD/año cada uno); conviene registrar `vytron.app` para que el identificador corresponda a un dominio propio.
+- Una vez publicada la app, el identificador no se puede cambiar. Quien publique la app debe registrar `app.vytron` en su cuenta de Apple Developer (Identifiers, con HealthKit activado) y en Google Play Console.
+
 ## Marca
 
 Paleta: `#0A0A0B` · `#171719` · `#242428` · `#B7FF36` · `#F5F5F5` · `#A0A0A8`. Tipografías Barlow Condensed e Inter (SIL OFL). Logotipos en `assets/brand/`; para regenerarlos, `npm run brand`.
 
+Búsqueda de antecedentes (20/10/2026):
+
+- EE. UU. (USPTO): `VYTRON` solo aparece en un registro de 1953 para lubricantes industriales; `VYTRONUS` es una marca de equipos médicos. Ninguno cubre apps ni fitness.
+- `VYTROON` (solicitud de 2024, clase 25: ropa, incluida la deportiva). No afecta a la app, pero sí a una posible línea de ropa VYTRON.
+- Nombres parecidos en fitness: VYTRIX (app de entrenamiento con IA), VYRON Coach y VRTO.
+- EUIPO y OEPM no se han podido consultar desde aquí. Antes de lanzar, busca «VYTRON» y variantes en [TMview](https://www.tmdn.org/tmview/) y en el [localizador de la OEPM](https://consultas2.oepm.es/LocalizadorWeb/) para las clases 9, 41 y 44. La tasa de la OEPM es de algo más de 100 € por la primera clase y la de la EUIPO, 850 €.
+
 ## Pendiente
 
-- Prompt maestro de desarrollo (cuentas de usuario y sincronización en la nube).
-- SDK de anuncios y consentimiento RGPD.
-- Fotografías con licencia para rutinas y ejercicios.
-- URLs reales de términos y privacidad; política de privacidad que mencione Salud, cámara y el análisis de fotos.
-- Identificadores definitivos de la app (`com.vytron.app` es provisional).
-- Marca: `vytron.com` no disponible (16/10/2026); nombres parecidos en fitness (VYTRIX, VYRON Coach, VRTO). Búsqueda formal en EUIPO/OEPM antes de lanzar.
+- Crear el proyecto de Supabase de VYTRON (el plan gratuito ya tiene 2 proyectos activos) y desplegar las funciones.
+- Cuenta de AdMob, mensajes de privacidad y los IDs reales.
+- Registrar `vytron.app` y la marca en OEPM o EUIPO.
+- Fotos con licencia, si se quieren además del mapa muscular.

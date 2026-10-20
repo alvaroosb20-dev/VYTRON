@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Icon } from '@/components/Icon';
+import { MuscleMap } from '@/components/MuscleMap';
 import { Card, Chips, Field, Pill, Screen, T, TopBar } from '@/components/ui';
 import { tierAllows } from '@/config/plans';
 import { EXERCISES, Muscle, MUSCLES } from '@/data/exercises';
@@ -29,7 +30,8 @@ export default function Library() {
         {list.map((e) => {
           const locked = !tierAllows(tier, e.tier);
           return (
-            <Card key={e.id} onPress={() => router.push(`/exercise/${e.id}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+            <Card key={e.id} onPress={() => router.push(`/exercise/${e.id}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
+              <MuscleMap primary={e.muscle} secondary={e.secondary} height={56} compact />
               <View style={{ flex: 1 }}>
                 <T.Body>{e.name}</T.Body>
                 <T.Small>{e.muscle} · {e.equipment}</T.Small>

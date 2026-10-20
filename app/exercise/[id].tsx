@@ -1,9 +1,11 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { View } from 'react-native';
+import { Image, Linking, View } from 'react-native';
 import { Gate } from '@/components/Gate';
 import { Icon } from '@/components/Icon';
+import { MuscleMap } from '@/components/MuscleMap';
 import { Card, Pill, Screen, SectionTitle, T, TopBar } from '@/components/ui';
 import { getExercise } from '@/data/exercises';
+import { EXERCISE_MEDIA } from '@/data/media';
 import { personalRecords, useProgress } from '@/lib/progress';
 import { estimate1RM } from '@/lib/training';
 import { colors, space } from '@/theme/tokens';
@@ -22,6 +24,7 @@ export default function ExerciseDetail() {
     );
   }
 
+  const media = EXERCISE_MEDIA[e.id];
   const pr = personalRecords(sessions)[e.id];
   const history = sessions
     .filter((s) => s.sets.some((x) => x.exerciseId === e.id))
@@ -40,6 +43,31 @@ export default function ExerciseDetail() {
         {(e.secondary ?? []).map((m) => <Pill key={m} text={m.toUpperCase()} />)}
       </View>
       <T.Hero style={{ marginTop: space.md }}>{e.name.toUpperCase()}</T.Hero>
+
+      {media ? (
+        <View style={{ marginTop: space.lg }}>
+          <Image source={media.source} style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 22 }} resizeMode="cover" accessibilityLabel={e.name} />
+          <T.Small style={{ marginTop: 6 }} onPress={media.link ? () => Linking.openURL(media.link!) : undefined}>
+            Foto: {media.author} · {media.license}
+          </T.Small>
+        </View>
+      ) : null}
+
+      <Card style={{ marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.lg }}>
+        <MuscleMap primary={e.muscle} secondary={e.secondary} height={170} />
+        <View style={{ flex: 1, gap: space.sm }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.neon }} />
+            <T.Small style={{ color: colors.white }}>{e.muscle}</T.Small>
+          </View>
+          {(e.secondary ?? []).map((m) => (
+            <View key={m} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(183,255,54,0.38)' }} />
+              <T.Small>{m}</T.Small>
+            </View>
+          ))}
+        </View>
+      </Card>
 
       <Gate tier={e.tier} title="Técnica completa" description="Pasos, claves y errores comunes de este ejercicio.">
         <SectionTitle title="CÓMO SE HACE" />

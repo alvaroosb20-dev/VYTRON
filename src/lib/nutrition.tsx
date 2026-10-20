@@ -18,43 +18,67 @@ export type FoodEntry = {
 
 const KEY = 'vytron.nutrition.v1';
 
+/** Diario completo tal y como se guarda y se sincroniza. */
+export type NutritionStore = { entries: FoodEntry[]; deleted: string[]; modifiedAt: string };
+const EMPTY: NutritionStore = { entries: [], deleted: [], modifiedAt: new Date(0).toISOString() };
+
 type Ctx = {
+  ready: boolean;
   entries: FoodEntry[];
+  modifiedAt: string;
   add: (e: Omit<FoodEntry, 'id' | 'date'> & { date?: string }) => Promise<FoodEntry>;
   remove: (id: string) => Promise<void>;
+  snapshot: () => NutritionStore;
+  replaceAll: (s: NutritionStore) => Promise<void>;
 };
 
 const NutritionContext = createContext<Ctx | null>(null);
 
 export function NutritionProvider({ children }: { children: React.ReactNode }) {
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
-  const ref = useRef(entries);
+  const [store, setStore] = useState<NutritionStore>(EMPTY);
+  const [ready, setReady] = useState(false);
+  const ref = useRef(store);
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
         if (!raw) return;
-        const list = JSON.parse(raw);
-        if (Array.isArray(list)) { ref.current = list; setEntries(list); }
+        const d = JSON.parse(raw);
+        // Versión anterior: el diario era una lista sin metadatos.
+        const next: NutritionStore = Array.isArray(d)
+          ? { ...EMPTY, entries: d }
+          : { entries: Array.isArray(d.entries) ? d.entries : [], deleted: Array.isArray(d.deleted) ? d.deleted : [], modifiedAt: d.modifiedAt ?? EMPTY.modifiedAt };
+        ref.current = next;
+        setStore(next);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setReady(true));
   }, []);
 
-  const save = useCallback(async (next: FoodEntry[]) => {
+  const persist = useCallback(async (next: NutritionStore) => {
     ref.current = next;
-    setEntries(next);
+    setStore(next);
     try { await AsyncStorage.setItem(KEY, JSON.stringify(next)); } catch {}
   }, []);
 
   const value = useMemo<Ctx>(() => ({
-    entries,
+    ready,
+    entries: store.entries,
+    modifiedAt: store.modifiedAt,
     add: async (e) => {
       const entry: FoodEntry = { ...e, id: `${Date.now()}`, date: e.date ?? new Date().toISOString() };
-      await save([entry, ...ref.current]);
+      await persist({ ...ref.current, entries: [entry, ...ref.current.entries], modifiedAt: new Date().toISOString() });
       return entry;
     },
-    remove: (id) => save(ref.current.filter((x) => x.id !== id)),
-  }), [entries, save]);
+    remove: (id) =>
+      persist({
+        entries: ref.current.entries.filter((x) => x.id !== id),
+        deleted: [...ref.current.deleted, id],
+        modifiedAt: new Date().toISOString(),
+      }),
+    snapshot: () => ref.current,
+    replaceAll: persist,
+  }), [store, ready, persist]);
 
   return <NutritionContext.Provider value={value}>{children}</NutritionContext.Provider>;
 }

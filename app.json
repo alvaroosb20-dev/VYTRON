@@ -10,7 +10,7 @@
     "backgroundColor": "#0A0A0B",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "com.vytron.app",
+      "bundleIdentifier": "app.vytron",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
@@ -23,7 +23,7 @@
       }
     },
     "android": {
-      "package": "com.vytron.app",
+      "package": "app.vytron",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0A0B"

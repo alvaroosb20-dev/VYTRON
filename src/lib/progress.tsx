@@ -26,12 +26,16 @@ type Settings = {
   reminders: Reminders;
 };
 
-type Store = {
+export type Store = {
   sessions: Session[];
   settings: Settings;
   customWorkouts: Workout[];
   weights: WeightEntry[];
   body: BodyProfile;
+  /** Última modificación local (ISO). La sincronización la usa para decidir qué ajustes ganan. */
+  modifiedAt: string;
+  /** Ids borrados, para que la sincronización no los resucite desde otro dispositivo. */
+  deleted: { sessions: string[]; workouts: string[] };
 };
 
 const KEY = 'vytron.progress.v2';
@@ -41,6 +45,8 @@ const DEFAULTS: Store = {
   customWorkouts: [],
   weights: [],
   body: {},
+  modifiedAt: new Date(0).toISOString(),
+  deleted: { sessions: [], workouts: [] },
 };
 
 type Ctx = Store & {
@@ -59,6 +65,10 @@ type Ctx = Store & {
   setHealthSync: (on: boolean) => Promise<void>;
   completeOnboarding: (a: OnboardingAnswers, plan: (string | null)[], body: BodyProfile) => Promise<void>;
   setReminders: (r: Partial<Reminders>) => Promise<void>;
+  /** Copia completa de los datos (para sincronizar). */
+  snapshot: () => Store;
+  /** Sustituye los datos locales por los recibidos de la nube ya fusionados. */
+  replaceAll: (s: Store) => Promise<void>;
 };
 
 const ProgressContext = createContext<Ctx | null>(null);
@@ -87,6 +97,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
             customWorkouts: Array.isArray(d.customWorkouts) ? d.customWorkouts : [],
             weights: Array.isArray(d.weights) ? d.weights : [],
             body: d.body ?? {},
+            modifiedAt: typeof d.modifiedAt === 'string' ? d.modifiedAt : DEFAULTS.modifiedAt,
+            deleted: { sessions: d.deleted?.sessions ?? [], workouts: d.deleted?.workouts ?? [] },
           };
           ref.current = next;
           setStore(next);
@@ -100,8 +112,16 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Actualización atómica: siempre parte del último estado guardado.
+  const persist = useCallback(async (next: Store) => {
+    ref.current = next;
+    setStore(next);
+    try {
+      await AsyncStorage.setItem(KEY, JSON.stringify(next));
+    } catch {}
+  }, []);
+
   const update = useCallback(async (fn: (s: Store) => Store) => {
-    const next = fn(ref.current);
+    const next = { ...fn(ref.current), modifiedAt: new Date().toISOString() };
     ref.current = next;
     setStore(next);
     try {
@@ -117,7 +137,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       await update((st) => ({ ...st, sessions: [session, ...st.sessions] }));
       return session;
     },
-    deleteSession: (id) => update((st) => ({ ...st, sessions: st.sessions.filter((x) => x.id !== id) })),
+    deleteSession: (id) =>
+      update((st) => ({
+        ...st,
+        sessions: st.sessions.filter((x) => x.id !== id),
+        deleted: { ...st.deleted, sessions: [...st.deleted.sessions, id] },
+      })),
     setWeeklyGoal: (n) => update((st) => ({ ...st, settings: { ...st.settings, weeklyGoal: Math.max(1, Math.min(7, n)) } })),
     setDayPlan: (d, id) =>
       update((st) => {
@@ -143,6 +168,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       update((st) => ({
         ...st,
         customWorkouts: st.customWorkouts.filter((x) => x.id !== id),
+        deleted: { ...st.deleted, workouts: [...st.deleted.workouts, id] },
         settings: { ...st.settings, weekPlan: st.settings.weekPlan.map((p) => (p === id ? null : p)) },
       })),
     addWeight: (kg) =>
@@ -161,7 +187,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         settings: { ...st.settings, onboarded: true, onboarding: a, weekPlan: plan, weeklyGoal: a.days, activeProgram: undefined },
       })),
     setReminders: (r) => update((st) => ({ ...st, settings: { ...st.settings, reminders: { ...st.settings.reminders, ...r } } })),
-  }), [store, ready, update]);
+    snapshot: () => ref.current,
+    replaceAll: persist,
+  }), [store, ready, update, persist]);
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;
 }

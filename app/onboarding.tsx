@@ -95,7 +95,7 @@ export default function Onboarding() {
     if (thenPaywall) setTimeout(() => router.push({ pathname: '/paywall', params: { from: 'onboarding' } }), 350);
   };
 
-  const qIndex = QUESTIONS.indexOf(step);
+  const qIndex = (QUESTIONS as readonly Step[]).indexOf(step);
   const showChrome = qIndex >= 0;
 
   return (

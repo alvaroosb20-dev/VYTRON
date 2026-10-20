@@ -7,6 +7,9 @@ import { Mark } from '@/components/Logo';
 import { Button, Card, Chips, Pill, Screen, SectionTitle, T } from '@/components/ui';
 import { BRAND, LEGAL } from '@/config/app';
 import { PLANS } from '@/config/plans';
+import { useAds } from '@/lib/ads';
+import { useAuth } from '@/lib/auth';
+import { useSync } from '@/lib/cloudSync';
 import { connectHealth, healthAvailable, latestWeightKg } from '@/lib/health';
 import { useProgress } from '@/lib/progress';
 import { notificationPermission } from '@/lib/reminders';
@@ -15,6 +18,9 @@ import { colors, fonts, radius, space } from '@/theme/tokens';
 
 export default function Profile() {
   const { tier, status, restore, manage, hasAccess } = useSubscription();
+  const auth = useAuth();
+  const sync = useSync();
+  const ads = useAds();
   const { settings, setWeeklyGoal, setHealthSync, body, setBody, setReminders } = useProgress();
   const [restoring, setRestoring] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -83,6 +89,13 @@ export default function Profile() {
       </Card>
 
       <SectionTitle title="TUS DATOS" />
+      <Row
+        icon="profile"
+        title="Cuenta"
+        detail={auth.user ? (sync.status === 'error' ? 'Sin sincronizar' : 'Sincronizada') : auth.available ? 'Crear o iniciar sesión' : undefined}
+        onPress={() => router.push('/account')}
+      />
+      <View style={{ height: space.sm }} />
       <Row icon="scale" title="Datos corporales" detail={body.weightKg ? `${String(body.weightKg).replace('.', ',')} kg` : 'Completar'} onPress={() => router.push('/body')} />
 
       <SectionTitle title="OBJETIVO SEMANAL" />
@@ -152,6 +165,8 @@ export default function Profile() {
       <Card style={{ paddingVertical: space.xs }}>
         <Row icon="report" title="Términos de uso" onPress={() => LEGAL.terms && Linking.openURL(LEGAL.terms)} flat />
         <Row icon="lock" title="Privacidad" onPress={() => LEGAL.privacy && Linking.openURL(LEGAL.privacy)} flat line />
+        <Row icon="book" title="Soporte" onPress={() => Linking.openURL(LEGAL.support)} flat line />
+        {ads.privacyOptionsRequired && <Row icon="target" title="Privacidad de anuncios" onPress={ads.showPrivacyOptions} flat line />}
       </Card>
 
       <Text style={styles.footer}>{BRAND.name} · {BRAND.slogan}</Text>

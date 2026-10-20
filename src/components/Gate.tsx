@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Feature, FEATURE_TIER, Tier, tierAllows } from '@/config/plans';
+import { adsModule, bannerUnitId, useAds } from '@/lib/ads';
 import { useSubscription } from '@/lib/subscription';
 import { colors, fonts, space } from '@/theme/tokens';
 import { Icon } from './Icon';
@@ -42,26 +43,26 @@ export function LockedCard({ required, title, description }: { required: Tier; t
 }
 
 /**
- * Espacio publicitario discreto. Solo existe en Free y desaparece en cuanto se verifica
- * un plan sin anuncios. Aquí se conecta el SDK de anuncios elegido (AdMob, etc.).
- * Mientras no haya SDK configurado, no se pinta nada: nunca se muestran anuncios falsos.
+ * Banner discreto del plan Free. Solo aparece si:
+ *  - el plan verificado no incluye "sin anuncios" (desaparece en cuanto se verifica Pro o Premium),
+ *  - el usuario ha resuelto el consentimiento de anuncios,
+ *  - hay un id de bloque de anuncios configurado.
+ * Si el anuncio no carga, el espacio se oculta: nunca hay huecos vacíos.
  */
 export function AdSlot() {
   const { showAds } = useSubscription();
-  if (!showAds) return null;
-  const AdBanner = getAdBanner();
-  if (!AdBanner) return null;
+  const { ready } = useAds();
+  const [failed, setFailed] = React.useState(false);
+  const M = adsModule();
+  const unitId = bannerUnitId();
+  if (!showAds || !ready || !M || !unitId || failed) return null;
+  const { BannerAd, BannerAdSize } = M;
   return (
     <View style={styles.ad}>
       <Text style={styles.adLabel}>Publicidad</Text>
-      <AdBanner />
+      <BannerAd unitId={unitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} onAdFailedToLoad={() => setFailed(true)} />
     </View>
   );
-}
-
-// Punto de integración del SDK de anuncios. Devuelve null hasta que se configure.
-function getAdBanner(): React.ComponentType | null {
-  return null;
 }
 
 const styles = StyleSheet.create({

@@ -5,6 +5,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AdsProvider } from '@/lib/ads';
+import { AuthProvider } from '@/lib/auth';
+import { SyncProvider } from '@/lib/cloudSync';
 import { NutritionProvider } from '@/lib/nutrition';
 import { ProgressProvider, useProgress } from '@/lib/progress';
 import { syncTrainingReminders } from '@/lib/reminders';
@@ -30,9 +33,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <AuthProvider>
       <SubscriptionProvider>
+        <AdsProvider>
         <ProgressProvider>
           <NutritionProvider>
+          <SyncProvider>
           <StatusBar style="light" />
           <RemindersSync />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.black }, animation: 'fade' }}>
@@ -49,10 +55,15 @@ export default function RootLayout() {
             <Stack.Screen name="food-scan" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="recipes" options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="paywall" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="account" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="nueva-contrasena" />
           </Stack>
+          </SyncProvider>
           </NutritionProvider>
         </ProgressProvider>
+        </AdsProvider>
       </SubscriptionProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
