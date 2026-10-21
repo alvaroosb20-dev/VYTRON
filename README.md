@@ -87,6 +87,16 @@ La app nunca anuncia una prueba que la tienda no ofrezca: los días salen del pr
 
 Reglas: el nivel sale **solo** de los entitlements activos que devuelve RevenueCat; los precios mostrados son los de la tienda (los de `plans.ts` son de referencia y desactivan la compra si la tienda no responde); restaurar y gestionar están en el paywall y en Perfil; los anuncios solo pueden aparecer en Free y nunca mientras se verifica.
 
+### Acceso Premium gratis (para ti, testers o colaboradores)
+
+No hay códigos dentro de la app: el repositorio es público y cualquiera podría usarlos. Se hace desde RevenueCat:
+
+1. La persona crea su cuenta en VYTRON.
+2. RevenueCat › **Customers** › buscar por su email (la app lo envía al iniciar sesión).
+3. **Grant entitlement** › `premium` › duración (p. ej. *Lifetime*).
+
+El acceso queda ligado a su cuenta en todos sus dispositivos y se puede retirar en cualquier momento. Para regalar meses a usuarios normales también existen los códigos de oferta de App Store Connect y los códigos promocionales de Google Play.
+
 ## Escáner de comidas
 
 La foto se reduce a 1024 px y se envía a la Edge Function `food-scan`, que:

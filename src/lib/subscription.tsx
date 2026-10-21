@@ -120,6 +120,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         if (id) {
           const { customerInfo } = await Purchases.logIn(id);
           setInfo(customerInfo);
+          // Email y nombre visibles en RevenueCat › Customers: permite buscar a un usuario
+          // para darle acceso promocional (Grant entitlement) o atender soporte.
+          Purchases.setAttributes({
+            $email: user?.email ?? null,
+            $displayName: (user?.user_metadata?.name as string | undefined) ?? null,
+          }).catch(() => {});
         } else if (linkedUser.current) {
           setInfo(await Purchases.logOut());
         }
