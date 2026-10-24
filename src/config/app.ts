@@ -30,7 +30,7 @@ export const LEGAL = {
   deleteAccount: `${SITE_URL}/soporte#eliminar-cuenta`,
 };
 
-export const SUPPORT_EMAIL = 'alvaroosb20@gmail.com';
+export const SUPPORT_EMAIL = 'vytronsoporte@gmail.com';
 
 /**
  * «Continuar con Apple». Activar SOLO cuando estén configurados el proveedor Apple en Supabase

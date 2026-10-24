@@ -203,7 +203,7 @@ Para añadir fotos o vídeos con licencia, regístralos en `src/data/media.ts` c
 | Soporte | `/soporte` | URL de soporte de App Store; `/soporte#eliminar-cuenta` para el formulario de borrado de Google Play |
 | Cuenta confirmada | `/cuenta-confirmada` | Destino del email de confirmación |
 
-Titular: Álvaro Santana Bencomo, Santa Cruz de Tenerife. Contacto: alvaroosb20@gmail.com (cámbialo en `public/*.html` y `SUPPORT_EMAIL` en `src/config/app.ts` si prefieres otro). Revisa los textos con un asesor antes del lanzamiento y añade tu NIF en `terminos.html` si facturas como autónomo.
+Titular: Álvaro Santana Bencomo, Santa Cruz de Tenerife. Contacto: vytronsoporte@gmail.com (cámbialo en `public/*.html` y `SUPPORT_EMAIL` en `src/config/app.ts` si prefieres otro). Revisa los textos con un asesor antes del lanzamiento y añade tu NIF en `terminos.html` si facturas como autónomo.
 
 ## Identificadores
 
