@@ -1,19 +1,21 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Image, Linking, View } from 'react-native';
+import { View } from 'react-native';
+import { ExerciseDemo } from '@/components/ExerciseDemo';
 import { Gate } from '@/components/Gate';
 import { Icon } from '@/components/Icon';
 import { MuscleMap } from '@/components/MuscleMap';
 import { Card, Pill, Screen, SectionTitle, T, TopBar } from '@/components/ui';
 import { getExercise } from '@/data/exercises';
-import { EXERCISE_MEDIA } from '@/data/media';
+import { formatRest, Prescription, prescriptionsFor } from '@/lib/prescription';
 import { personalRecords, useProgress } from '@/lib/progress';
 import { estimate1RM } from '@/lib/training';
 import { colors, space } from '@/theme/tokens';
 
 export default function ExerciseDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const e = getExercise(String(id));
-  const { sessions } = useProgress();
+  // sets/reps/rest/from llegan desde la sesión de entrenamiento, si se abre desde ahí.
+  const params = useLocalSearchParams<{ id: string; sets?: string; reps?: string; rest?: string; from?: string }>();
+  const e = getExercise(String(params.id));
+  const { sessions, settings, customWorkouts } = useProgress();
 
   if (!e) {
     return (
@@ -24,7 +26,10 @@ export default function ExerciseDetail() {
     );
   }
 
-  const media = EXERCISE_MEDIA[e.id];
+  const fromSession: Prescription | null = params.sets && params.reps
+    ? { sets: Number(params.sets), reps: String(params.reps), restSec: Number(params.rest ?? 0), from: params.from ? String(params.from) : 'Tu sesión de hoy' }
+    : null;
+  const plan = fromSession ? { list: [fromSession], personal: true } : prescriptionsFor(e, settings.weekPlan, customWorkouts);
   const pr = personalRecords(sessions)[e.id];
   const history = sessions
     .filter((s) => s.sets.some((x) => x.exerciseId === e.id))
@@ -37,28 +42,36 @@ export default function ExerciseDetail() {
   return (
     <Screen>
       <TopBar onClose={() => router.back()} />
-      <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+      <ExerciseDemo exercise={e} />
+      <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: space.lg }}>
         <Pill text={e.muscle.toUpperCase()} tone="neon" />
         <Pill text={e.equipment.toUpperCase()} />
         {(e.secondary ?? []).map((m) => <Pill key={m} text={m.toUpperCase()} />)}
       </View>
       <T.Hero style={{ marginTop: space.md }}>{e.name.toUpperCase()}</T.Hero>
 
-      {media ? (
-        <View style={{ marginTop: space.lg }}>
-          <Image source={media.source} style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 22 }} resizeMode="cover" accessibilityLabel={e.name} />
-          <T.Small style={{ marginTop: 6 }} onPress={media.link ? () => Linking.openURL(media.link!) : undefined}>
-            Foto: {media.author} · {media.license}
-          </T.Small>
-        </View>
-      ) : null}
+      <SectionTitle title={plan.personal ? 'TU PAUTA' : 'PAUTA'} />
+      <Card style={{ gap: space.md }}>
+        {plan.list.map((p, i) => (
+          <View key={i} style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', gap: space.lg }}>
+              <Metric value={String(p.sets)} label="series" />
+              <Metric value={p.reps} label="repeticiones" />
+              <Metric value={p.restSec ? formatRest(p.restSec) : '—'} label="descanso" />
+            </View>
+            <T.Small>{p.from}</T.Small>
+          </View>
+        ))}
+        {!plan.personal && <T.Small>Cuando lo añadas a tu semana o a una rutina propia, aquí verás tu pauta.</T.Small>}
+      </Card>
 
-      <Card style={{ marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.lg }}>
-        <MuscleMap primary={e.muscle} secondary={e.secondary} height={170} />
+      <SectionTitle title="MÚSCULOS Y MATERIAL" />
+      <Card style={{ flexDirection: 'row', alignItems: 'center', gap: space.lg }}>
+        <MuscleMap primary={e.muscle} secondary={e.secondary} height={150} />
         <View style={{ flex: 1, gap: space.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.neon }} />
-            <T.Small style={{ color: colors.white }}>{e.muscle}</T.Small>
+            <T.Small style={{ color: colors.white }}>{e.muscle} · principal</T.Small>
           </View>
           {(e.secondary ?? []).map((m) => (
             <View key={m} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -66,6 +79,9 @@ export default function ExerciseDetail() {
               <T.Small>{m}</T.Small>
             </View>
           ))}
+          <View style={{ height: 1, backgroundColor: colors.line, marginVertical: 4 }} />
+          <T.Label style={{ fontSize: 10 }}>MATERIAL</T.Label>
+          <T.Small style={{ color: colors.white }}>{e.equipment}</T.Small>
         </View>
       </Card>
 
@@ -80,13 +96,13 @@ export default function ExerciseDetail() {
           ))}
         </Card>
 
-        <SectionTitle title="CLAVE" />
+        <SectionTitle title="CONSEJO TÉCNICO" />
         <Card style={{ flexDirection: 'row', gap: space.md, alignItems: 'center' }}>
           <Icon name="target" color={colors.neon} />
           <T.Body style={{ flex: 1 }}>{e.cue}</T.Body>
         </Card>
 
-        <SectionTitle title="ERRORES COMUNES" />
+        <SectionTitle title="ERRORES FRECUENTES" />
         <Card style={{ gap: space.sm }}>
           {e.mistakes.map((m) => <T.Body key={m}>· {m}</T.Body>)}
         </Card>
@@ -124,5 +140,14 @@ export default function ExerciseDetail() {
         </>
       )}
     </Screen>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <T.H2 style={{ color: colors.neon }} numberOfLines={1} adjustsFontSizeToFit>{value}</T.H2>
+      <T.Small>{label}</T.Small>
+    </View>
   );
 }

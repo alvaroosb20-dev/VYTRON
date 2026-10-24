@@ -145,7 +145,7 @@ export default function WorkoutSession() {
             const best = sets.reduce((m, s) => Math.max(m, s.done ? estimate1RM(parseFloat(s.kg.replace(',', '.')), parseInt(s.reps, 10)) ?? 0 : 0), 0);
             return (
               <Card key={it.exerciseId + n} style={{ marginTop: space.md }}>
-                <Pressable onPress={() => router.push(`/exercise/${it.exerciseId}`)} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.md }}>
+                <Pressable onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: it.exerciseId, sets: String(it.sets), reps: it.reps, rest: String(it.restSec), from: workout.name } })} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.md }}>
                   <Text style={styles.num}>{String(n + 1).padStart(2, '0')}</Text>
                   <View style={{ flex: 1 }}>
                     <T.H2>{e?.name ?? it.exerciseId}</T.H2>

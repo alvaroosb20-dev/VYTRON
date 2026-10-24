@@ -186,11 +186,34 @@ Google AdMob con `react-native-google-mobile-ads`, solo en Free:
 
 Configuración: crea la app y un bloque de banner en AdMob y define `ADMOB_IOS_APP_ID`, `ADMOB_ANDROID_APP_ID`, `EXPO_PUBLIC_ADMOB_BANNER_IOS` y `EXPO_PUBLIC_ADMOB_BANNER_ANDROID` (`app.config.js` las inyecta). En desarrollo se usan los IDs de prueba de Google; en producción, sin IDs reales no se muestra ningún anuncio. En AdMob crea los mensajes de RGPD y de iOS (ATT) en Privacidad y mensajes.
 
-## Imágenes de ejercicios
+## Demostraciones animadas de ejercicios
 
-Cada ejercicio muestra un mapa muscular propio (frente y espalda) con el músculo principal en verde y los secundarios atenuados: `src/components/MuscleMap.tsx`. Es un dibujo original, sin licencias de terceros.
+Los 48 ejercicios tienen una demostración animada en bucle (inicio → final → vuelta) con controles de reproducir/pausa, repetir y velocidad 0,5×. Es una **animación vectorial original de VYTRON**, no un vídeo grabado: un modelo biomecánico 2D (cinemática directa e inversa) en los colores de la marca, con el músculo principal en verde y el material (barra, mancuernas, kettlebell, polea, banco, máquinas) dibujado en la misma escena. Cada ejercicio tiene sus propios fotogramas clave; ninguna animación se reutiliza para otro movimiento.
 
-Para añadir fotos o vídeos con licencia, regístralos en `src/data/media.ts` con autor y licencia: la ficha del ejercicio muestra la foto y el crédito.
+| Archivo | Qué hace |
+|---|---|
+| `src/lib/demoEngine.ts` | Motor: posturas, interpolación, pies y manos fijos (cinemática inversa), encuadre automático y dibujo. Sin dependencias. |
+| `src/data/demos.ts` | Los fotogramas clave de cada ejercicio (vista lateral, frontal o cenital). |
+| `src/components/ExerciseDemo.tsx` | Reproductor (`ExerciseDemo`) y miniatura fija para listas (`DemoThumb`). |
+| `src/data/media.ts` | Registro opcional de GIF/WebP con licencia, que sustituyen a la animación de su ejercicio. |
+| `src/lib/prescription.ts` | Series, repeticiones y descanso del ejercicio según la semana y las rutinas del usuario. |
+| `scripts/render-demos.mjs` | Hoja de control: dibuja cada ejercicio en 6 instantes y avisa si falta alguno o si algo atraviesa el suelo. |
+
+**Rendimiento.** Las animaciones son código (unos pocos KB en total): no se descarga nada al arrancar ni al abrir la ficha. Solo se anima la ficha abierta, a ~30 fps, y se para sola si sales de la pantalla o la app pasa a segundo plano. La biblioteca es una lista virtualizada con miniaturas fijas. Si el usuario tiene activado «Reducir movimiento», la animación empieza en pausa. Funciona igual en iOS, Android y web (usa `react-native-svg`, que ya estaba instalado).
+
+**Añadir o cambiar una animación.**
+1. Copia en `src/data/demos.ts` la entrada del ejercicio más parecido y usa el mismo `id` que en `src/data/exercises.ts`.
+2. Ajusta los fotogramas: ángulos de cada segmento (0 = abajo, 90 = delante, 180 = arriba, -90 = atrás) y, para lo que está apoyado (pies en el suelo, manos en la barra), un punto en `ik` en lugar de ángulos.
+3. Comprueba el resultado con `node scripts/render-demos.mjs` y abre `demo-check/demos.html`.
+4. Un ejercicio sin entrada en `DEMOS` muestra «Demostración en preparación» con su mapa muscular; `missingDemos()` en `demos.ts` los lista.
+
+**Usar vídeo real con licencia (opcional).** Si grabáis vuestros propios vídeos o compráis un pack con licencia comercial para apps, exportad cada ejercicio a GIF o WebP animado (≤ 600 KB, ~480 px, fondo oscuro), subidlo a `public/exercises/` (lo sirve Vercel) y registradlo en `src/data/media.ts` con autor y licencia. La ficha lo descarga solo al abrirse; mientras carga y si falla se ve la animación vectorial, y se indica en pantalla. Para MP4/WebM hay que añadir `expo-video` (`npx expo install expo-video`) y cambiar el `Image` del reproductor por un `VideoView` en bucle y sin sonido.
+
+No se usan las fotos de bases de datos «gratuitas» de ejercicios (p. ej. free-exercise-db): las imágenes no indican su autor original y no se puede garantizar que permitan uso comercial.
+
+### Mapa muscular
+
+La ficha también muestra un mapa muscular propio (frente y espalda) con el músculo principal en verde y los secundarios atenuados: `src/components/MuscleMap.tsx`.
 
 ## Web y páginas legales
 
